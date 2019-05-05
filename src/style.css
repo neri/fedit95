@@ -160,6 +160,10 @@ input[type="file"] {
     font-size: 10pt;
 }
 
+.dialogInner h2:after {
+    clear: both;
+}
+
 #saveLoadDialog > .dialogInner {
     background: #FFF;
 }

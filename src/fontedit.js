@@ -15,7 +15,7 @@ const MAX_UNICHAR = 0x7F;
 document.addEventListener('DOMContentLoaded', () => {
 
     window.currentEditNumber = 0x41;
-    window.mainCanvas = new GlyphEditor('#mainCanvas', '#fontWidth', '#fontHeight');
+    window.mainCanvas = new GlyphEditor('#mainCanvas');
     window.fontData = new FontData();
     
     const GlyphSelectorRefresh = () => {
@@ -23,8 +23,85 @@ document.addEventListener('DOMContentLoaded', () => {
         $('#glyphCode').value = currentEditNumber.toString(16);
         let c = String.fromCharCode(currentEditNumber);
         $('#glyphChar').value = c;
-        window.mainCanvas.loadGlyph(window.fontData.getGlyph(currentEditNumber));
+        mainCanvas.loadGlyph(window.fontData.getGlyph(currentEditNumber));
     }
+    
+    const resizeDOM = () => {
+        mainCanvas.resize(parseInt($('#fontWidth').value) | 0, parseInt($('#fontHeight').value) | 0);
+    }
+
+    const showDialog = (dialog) => {
+        $('#mainScreen').classList.add('blur');
+        $('#dialogBackground').style.display = 'block';
+        dialog.style.display = 'block';
+    }
+
+    const closeDialog = (dialog) => {
+        $('#mainScreen').classList.remove('blur');
+        $('#dialogBackground').style.display = 'none';
+        dialog.style.display = 'none';
+    }
+
+    const RefreshPreview = () => {
+        const str = $('#previewText').value;
+        const canvas = $('#previewCanvas');
+        const maxWidth = canvas.clientWidth;
+        const maxHeight = $('#previewText').clientHeight;
+        canvas.setAttribute('width', maxWidth);
+        canvas.setAttribute('height', maxHeight);
+        let cursorX = 0, cursorY = 0;
+        const fontWidth = mainCanvas.width;
+        const fontHeight = mainCanvas.height;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, maxWidth, maxHeight);
+        ctx.fillStyle = "#000";
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            switch (char) {
+                case 0x0A: // LF
+                cursorX = 0;
+                cursorY += fontHeight;
+                break;
+                default:
+                const font = fontData.getGlyph(char);
+                if (cursorX + fontWidth > maxWidth) {
+                    cursorX = 0;
+                    cursorY += fontHeight;
+                }
+                for (let j = 0; j < fontWidth; j++) {
+                    for (let k = 0; k < fontHeight; k++) {
+                        if (font.getPixel(j ,k)) {
+                            ctx.fillRect(cursorX + j, cursorY + k, 1, 1);
+                        }
+                    }
+                }
+                cursorX += fontWidth;
+            }
+            if (cursorY >= maxHeight) break;
+        }
+    }
+    
+    const ImportFunction = () => {
+        if (fontData.import($('#base64Console').value)) {
+            localStorage.setItem(LS_WORKSPACE_KEY, $('#base64Console').value);
+            mainCanvas.resize(fontData.fontWidth, fontData.fontHeight);
+            $('#fontName').value = fontData.fontName;
+            $('#fontWidth').value = fontData.fontWidth;
+            $('#fontHeight').value = fontData.fontHeight;
+            GlyphSelectorRefresh();
+            RefreshPreview();
+            return true;
+        } else {
+            alert('ERROR: Cannot import data');
+            return false;
+        }
+    }
+    $('#previewText').value = localStorage.getItem(LS_PREVIEW_KEY) || "The quick brown fox jumps over the lazy dog.";
+    $('#base64Console').value = localStorage.getItem(LS_WORKSPACE_KEY) || "Rk9OVFgyRk9OVE5BTUUIEAA=";
+    ImportFunction();
+
+    $('#fontWidth').addEventListener('input', () => resizeDOM());
+    $('#fontHeight').addEventListener('input', () => resizeDOM());
     
     $('#glyphChar').addEventListener('input', () => {
         const c = $('#glyphChar').value;
@@ -89,10 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // $('#base64Console').addEventListener('focus', () => {
-    //     $('#base64Console').select();
-    // })
-    
     $('#previewText').addEventListener('input', () => {
         localStorage.setItem(LS_PREVIEW_KEY, $('#previewText').value);
         RefreshPreview();
@@ -112,84 +185,12 @@ document.addEventListener('DOMContentLoaded', () => {
         fontData.fontName = $('#fontName').value;
     })
 
-    const RefreshPreview = () => {
-        const str = $('#previewText').value;
-        const canvas = $('#previewCanvas');
-        const maxWidth = canvas.clientWidth;
-        const maxHeight = $('#previewText').clientHeight;
-        canvas.setAttribute('width', maxWidth);
-        canvas.setAttribute('height', maxHeight);
-        let cursorX = 0, cursorY = 0;
-        const fontWidth = mainCanvas.width;
-        const fontHeight = mainCanvas.height;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, maxWidth, maxHeight);
-        ctx.fillStyle = "#000";
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            switch (char) {
-                case 0x0A: // LF
-                cursorX = 0;
-                cursorY += fontHeight;
-                break;
-                default:
-                const font = fontData.getGlyph(char);
-                if (cursorX + fontWidth > maxWidth) {
-                    cursorX = 0;
-                    cursorY += fontHeight;
-                }
-                for (let j = 0; j < fontWidth; j++) {
-                    for (let k = 0; k < fontHeight; k++) {
-                        if (font.getPixel(j ,k)) {
-                            ctx.fillRect(cursorX + j, cursorY + k, 1, 1);
-                        }
-                    }
-                }
-                cursorX += fontWidth;
-            }
-            if (cursorY >= maxHeight) break;
-        }
-    }
-    
-    const ImportFunction = () => {
-        if (fontData.import($('#base64Console').value)) {
-            localStorage.setItem(LS_WORKSPACE_KEY, $('#base64Console').value);
-            mainCanvas.resize(fontData.fontWidth, fontData.fontHeight);
-            $('#fontName').value = fontData.fontName;
-            GlyphSelectorRefresh();
-            RefreshPreview();
-            return true;
-        } else {
-            alert('ERROR: Cannot import data');
-            return false;
-        }
-    }
-    $('#previewText').value = localStorage.getItem(LS_PREVIEW_KEY) || "The quick brown fox jumps over the lazy dog.";
-    $('#base64Console').value = localStorage.getItem(LS_WORKSPACE_KEY) || "Rk9OVFgyRk9OVE5BTUUIEAA=";
-    ImportFunction();
-    
-    const showDialog = (dialog) => {
-        $('#mainScreen').classList.add('blur');
-        $('#dialogBackground').style.display = 'block';
-        dialog.style.display = 'block';
-    }
-
-    const closeDialog = (dialog) => {
-        $('#mainScreen').classList.remove('blur');
-        $('#dialogBackground').style.display = 'none';
-        dialog.style.display = 'none';
-    }
-
 });
 
 
 class GlyphEditor {
-    static get MAX_WIDTH() { return 32 }
-    static get MAX_HEIGHT() { return 32 }
-    constructor(selector, widthSelector, heightSelector) {
+    constructor(selector) {
         this.canvas = $(selector);
-        this.widthSelector = $(widthSelector);
-        this.heightSelector = $(heightSelector);
         this.margin = 8;
         this.data = new GlyphData();
         
@@ -232,9 +233,6 @@ class GlyphEditor {
             e.preventDefault();
         }, false);
 
-        this.widthSelector.addEventListener('input', () => this.resizeDOM());
-        this.heightSelector.addEventListener('input', () => this.resizeDOM());
-        
     }
     convertMouseEvent(e) {
         const tr = e.target.getBoundingClientRect();
@@ -250,16 +248,11 @@ class GlyphEditor {
         console.log(e.touches, t, ex, ey);
         return {ex, ey};
     }
-    resizeDOM() {
-        this.resize(parseInt(this.widthSelector.value) | 0, parseInt(this.heightSelector.value) | 0);
-    }
     resize(w, h) {
-        let width = Math.min(Math.max(w, 1), GlyphEditor.MAX_WIDTH) | 0;
-        let height = Math.min(Math.max(h, 1), GlyphEditor.MAX_HEIGHT) | 0;
+        let width = Math.min(Math.max(w, 1), GlyphData.MAX_WIDTH) | 0;
+        let height = Math.min(Math.max(h, 1), GlyphData.MAX_HEIGHT) | 0;
         this.width = width;
         this.height = height;
-        this.widthSelector.value = width;
-        this.heightSelector.value = height;
         fontData.fontWidth = width;
         fontData.fontHeight = height;
         const long = Math.max(width, height);
@@ -289,7 +282,6 @@ class GlyphEditor {
         ctx.fillStyle = "#FFF";
         ctx.fillRect(margin, margin, width * scale, height * scale);
         
-        ctx.save();
         ctx.beginPath();
         ctx.lineWidth = 1;
         ctx.fillStyle = "#888";
@@ -299,7 +291,6 @@ class GlyphEditor {
             }
         }
         ctx.fill();
-        ctx.restore();
     }
     getPixel(x, y) {
         return this.data.getPixel(x | 0, y | 0);
@@ -355,13 +346,15 @@ class GlyphEditor {
 
 
 class GlyphData {
+    static get MAX_WIDTH() { return 32 }
+    static get MAX_HEIGHT() { return 32 }
     static get BIT_LEFT() { return 0x80000000 }
     constructor(data = []) {
         this.data = [].concat(data);
     }
     getPixel(x, y) {
         const row = this.data[y] || 0;
-        return row & (GlyphData.BIT_LEFT >>> x);
+        return (row & (GlyphData.BIT_LEFT >>> x)) != 0;
     }
     setPixel(x, y, data) {
         let row = this.data[y] || 0;
@@ -436,15 +429,15 @@ class FontData {
     importFontX2(blob) {
         const fontWidth = blob.charCodeAt(14);
         const fontHeight = blob.charCodeAt(15);
-        this.fontWidth = fontWidth;
-        this.fontHeight = fontHeight;
-        this.fontName = blob.slice(6, 14).trimEnd();
         const type = blob.charCodeAt(16);
         if (type != 0 ||
-            fontWidth < 1 || fontWidth > GlyphEditor.MAX_WIDTH ||
-            fontHeight < 1 || fontHeight > GlyphEditor.MAX_HEIGHT) {
+            fontWidth < 1 || fontWidth > GlyphData.MAX_WIDTH ||
+            fontHeight < 1 || fontHeight > GlyphData.MAX_HEIGHT) {
             return false;
         }
+        this.fontWidth = fontWidth;
+        this.fontHeight = fontHeight;
+        this.fontName = blob.slice(6, 14).trim();
         const w8 = Math.floor((fontWidth + 7) / 8);
         const fontSize = w8 * fontHeight;
         this.data = new Array(256);
@@ -468,9 +461,7 @@ class FontData {
         let header = ["FONTX2"];
         header.push(this.validateFontName());
         const { fontWidth, fontHeight } = this;
-        header.push(String.fromCharCode(fontWidth));
-        header.push(String.fromCharCode(fontHeight));
-        header.push(String.fromCharCode(0));
+        header.push(String.fromCharCode(fontWidth, fontHeight, 0));
         output.push(header.join(''));
         const w8 = Math.floor((fontWidth + 7) / 8);
         for (let i = 0; i < 256; i++) {
@@ -488,4 +479,3 @@ class FontData {
         return btoa(output.join(''));
     }
 }
-
