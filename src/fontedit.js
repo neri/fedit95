@@ -217,6 +217,21 @@ class GlyphEditor {
             e.stopPropagation();
         }, false);
         
+        this.canvas.addEventListener('touchstart', (e) => {
+            const { ex, ey } = this.convertTouchEvent(e);
+            this.currentColor = !this.getPixel(ex, ey);
+            this.setPixel(ex, ey, this.currentColor);
+            e.preventDefault();
+        }, false);
+        this.canvas.addEventListener('touchmove', (e) => {
+            const { ex, ey } = this.convertTouchEvent(e);
+            this.setPixel(ex, ey, this.currentColor);
+            e.preventDefault();
+        }, false);
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+        }, false);
+
         this.widthSelector.addEventListener('input', () => this.resizeDOM());
         this.heightSelector.addEventListener('input', () => this.resizeDOM());
         
@@ -225,7 +240,15 @@ class GlyphEditor {
         const tr = e.target.getBoundingClientRect();
         const ex = ((e.clientX - tr.left - this.margin) / this.scale) | 0;
         const ey = ((e.clientY - tr.top - this.margin) / this.scale) | 0;
-        return {ex, ey}
+        return {ex, ey};
+    }
+    convertTouchEvent(e) {
+        const tr = e.target.getBoundingClientRect();
+        const t = e.touches[0];
+        const ex = (((t.clientX - tr.left - this.margin)) / this.scale) | 0;
+        const ey = (((t.clientY - tr.top - this.margin)) / this.scale) | 0;
+        console.log(e.touches, t, ex, ey);
+        return {ex, ey};
     }
     resizeDOM() {
         this.resize(parseInt(this.widthSelector.value) | 0, parseInt(this.heightSelector.value) | 0);
@@ -397,45 +420,48 @@ class FontData {
         return (result + '        ').slice(0, 8);
     }
     import(data) {
+        // TODO: original format
         if (data.startsWith("Rk9OVFgy")) {
             // FONTX2
             const blob = atob(data);
-            const fontWidth = blob.charCodeAt(14);
-            const fontHeight = blob.charCodeAt(15);
-            this.fontWidth = fontWidth;
-            this.fontHeight = fontHeight;
-            this.fontName = blob.slice(6, 14).trimEnd();
-            const type = blob.charCodeAt(16);
-            if (type != 0 ||
-                fontWidth < 1 || fontWidth > GlyphEditor.MAX_WIDTH ||
-                fontHeight < 1 || fontHeight > GlyphEditor.MAX_HEIGHT) {
-                return false;
-            }
-            const w8 = Math.floor((fontWidth + 7) / 8);
-            const fontSize = w8 * fontHeight;
-            this.data = new Array(256);
-            for (let i = MIN_UNICHAR; i <= MAX_UNICHAR; i++) {
-                const base = 17 + fontSize * i;
-                let glyph = new GlyphData();
-                for (let j = 0; j < fontHeight; j++) {
-                    let rawData = 0;
-                    for (let k = 0; k < w8; k++) {
-                        const byte = blob.charCodeAt(base + j * w8 + k);
-                        rawData |= (byte << (24 - k * 8));
-                    }
-                    glyph.data[j] = rawData;
-                }
-                this.data[i] = glyph;
-            }
-            return true;
+            return this.importFontX2(blob);
         } else {
-            // TODO: original format
             return false;
         }
     }
     export() {
         // TODO: original format
         return this.exportFontX2();
+    }
+    importFontX2(blob) {
+        const fontWidth = blob.charCodeAt(14);
+        const fontHeight = blob.charCodeAt(15);
+        this.fontWidth = fontWidth;
+        this.fontHeight = fontHeight;
+        this.fontName = blob.slice(6, 14).trimEnd();
+        const type = blob.charCodeAt(16);
+        if (type != 0 ||
+            fontWidth < 1 || fontWidth > GlyphEditor.MAX_WIDTH ||
+            fontHeight < 1 || fontHeight > GlyphEditor.MAX_HEIGHT) {
+            return false;
+        }
+        const w8 = Math.floor((fontWidth + 7) / 8);
+        const fontSize = w8 * fontHeight;
+        this.data = new Array(256);
+        for (let i = MIN_UNICHAR; i <= MAX_UNICHAR; i++) {
+            const base = 17 + fontSize * i;
+            let glyph = new GlyphData();
+            for (let j = 0; j < fontHeight; j++) {
+                let rawData = 0;
+                for (let k = 0; k < w8; k++) {
+                    const byte = blob.charCodeAt(base + j * w8 + k);
+                    rawData |= (byte << (24 - k * 8));
+                }
+                glyph.data[j] = rawData;
+            }
+            this.data[i] = glyph;
+        }
+        return true;
     }
     exportFontX2() {
         let output = [];

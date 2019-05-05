@@ -15,11 +15,14 @@ fieldset {
 }
 
 .button, .buttonActive, .buttonDestructive {
+    display: inline-block;
     margin: 4px 2px;
+    padding: 1px 6px;
     border-radius: 6px;
     border: rgba(0, 0, 0, 0.25) solid 1px;
     font-weight: bold;
-    font-size: 12pt;
+    font-size: 10pt;
+    cursor: pointer;
 }
 
 .button {

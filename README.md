@@ -2,6 +2,8 @@
 
 Bitmap Font Editor
 
+- Preview website is [here](https://nerry.jp/fedit95/src/)
+
 ## Requirement
 
 - Electron

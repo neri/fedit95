@@ -19,8 +19,8 @@
                     <br>
                     <label>Code: <input id="glyphCode" type="text" maxlength="2" size="4" placeholder="XX"></label>
                     <br>
-                    <input id="glyphLt" class="button" type="button" value="&lt;">
-                    <input id="glyphGt" class="button" type="button" value="&gt;">
+                    <a id="glyphLt" class="button">&lt;</a>
+                    <a id="glyphGt" class="button">&gt;</a>
                 </fieldset>
             </div>
             
@@ -33,7 +33,7 @@
                     <br>
                     <label>Height: <input id="fontHeight" type="number" min="1" value="16" style="width: 3em;"></label>
                     <br>
-                    <input id="saveLoadButton" class="button" type="button" value="Save / Load">
+                    <a id="saveLoadButton" class="button">Save / Load</a>
                 </fieldset>
             </div>
         </aside>
@@ -41,18 +41,18 @@
         <aside id="rightTool">
             <fieldset>
                 <legend>Edit Tool</legend>
-                <input id="applyButton" class="buttonActive" type="button" value="Apply">
+                <a id="applyButton" class="buttonActive">Apply</a>
                 <br>
-                <input id="clearButton" class="buttonDestructive" type="button" value="Clear">
+                <a id="clearButton" class="buttonDestructive">Clear</a>
                 <br>
-                <input id="reverseButton" class="button" type="button" value="Reverse B/W">
+                <a id="reverseButton" class="button">Reverse B/W</a>
                 <br>
                 <table id="arrows">
-                    <tr><td></td><td><input id="shiftUButton" class="button" type="button" value="&#x2191;"></td></tr>
+                    <tr><td></td><td><a id="shiftUButton" class="button">&#x2191;</a></td></tr>
                     <tr>
-                        <td><input id="shiftLButton" class="button" type="button" value="&#x2190;"></td>
-                        <td><input id="shiftDButton" class="button" type="button" value="&#x2193;"></td>
-                        <td><input id="shiftRButton" class="button" type="button" value="&#x2192;"></td>
+                        <td><a id="shiftLButton" class="button">&#x2190;</a></td>
+                        <td><a id="shiftDButton" class="button">&#x2193;</a></td>
+                        <td><a id="shiftRButton" class="button">&#x2192;</a></td>
                     </tr>
                 </table>
             </fieldset>
@@ -82,9 +82,9 @@
     
     <div id="saveLoadDialog" class="dialog">
         <div class="dialogInner">
-            <input id="closeSaveLoadDialogButton" class="buttonDestructive closeButton" type="button" value="&#x2715;">
+            <a id="closeSaveLoadDialogButton" class="buttonDestructive closeButton">&#x2715;</a>
             <h2>Save / Load</h2>
-            <input id="importButton" class="buttonActive" type="button" value="Import">
+            <a id="importButton" class="buttonActive">Import</a>
             <br>
             <textarea id="base64Console" cols="40" rows="5" placeholder="base64:"></textarea>
             <br>
