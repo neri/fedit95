@@ -1,0 +1,169 @@
+
+html {
+    background: #EEE;
+    color: #777;
+    font: 10pt sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+fieldset {
+    border: #CCC dashed 1px;
+}
+
+.button, .buttonActive, .buttonDestructive {
+    margin: 4px 2px;
+    border-radius: 6px;
+    border: rgba(0, 0, 0, 0.25) solid 1px;
+    font-weight: bold;
+    font-size: 12pt;
+}
+
+.button {
+    background: #FFF;
+    color: #666;
+}
+
+.button:hover {
+    background: #CCC;
+    color: #333;
+}
+
+.button[disabled] {
+    background: #EEE;
+    color: #AAA;
+}
+
+.buttonActive {
+    background: #66F;
+    color: #FFF;
+}
+
+.buttonDestructive {
+    background: #F33;
+    color: #FFF;
+}
+
+input[type=text], input[type=number] {
+    border: #AAA solid 1px;
+    font: 10pt Menlo, "DejaVu Sans Mono", Consolas, "Lucida Console", monospace;
+}
+
+textarea {
+    border: #AAA solid 1px;
+    font: 9pt Menlo, "DejaVu Sans Mono", Consolas, "Lucida Console", monospace;
+}
+
+input[type=number] {
+    text-align: right;
+}
+
+input:read-only {
+    border: #AAA dashed 1px;
+    background: transparent;
+}
+
+#leftTool {
+    float: left;
+    width: 160px;
+}
+
+#rightTool {
+    float: right;
+    width: 160px;
+}
+
+nav {
+    clear: both;
+}
+
+input[type=file] {
+    width: 1px;
+    height: 1px;
+}
+
+#mainCanvasContainer {
+    margin-left: 160px;
+    width: 280px;
+    height: 280px;
+}
+
+#previewText {
+    width: 45%;
+}
+
+#previewCanvas {
+    width: 50%;
+    background: #FFF;
+}
+
+#previewText, #previewCanvas {
+    margin: 0;
+    padding: 0;
+    border: #AAA solid 1px;
+    vertical-align: top;
+}
+
+/* #base64Console {
+    width: 100%;
+} */
+
+#arrows {
+    border-collapse: collapse;
+    border: none;
+    border-spacing: 0;
+}
+
+.blur {
+    filter: blur(2px) grayscale();
+}
+
+#dialogBackground {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.dialog {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.dialogInner {
+    position: absolute;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    top: 50%;
+    left: 50%;
+    transform: translateY(-50%) translateX(-50%);
+    border-radius: 6px;
+    padding: 6px;
+}
+
+.dialogInner h2 {
+    margin: 4px 0;
+    padding: 4px;
+    border-bottom: #AAA dashed 1px;
+    font-size: 10pt;
+}
+
+#saveLoadDialog > .dialogInner {
+    background: #FFF;
+}
+
+.closeButton {
+    float: right;
+    /* position: relative;
+    right: -8px;
+    top: -8px; */
+}

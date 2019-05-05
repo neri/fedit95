@@ -1,0 +1,24 @@
+{
+  "name": "jp.nerry.fedit95",
+  "version": "0.0.1",
+  "description": "Bitmap Font Editor",
+  "main": "src/main.js",
+  "scripts": {
+    "build": "electron-packager src fedit95 --platform=darwin --arch=x64 --overwrite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Nerry",
+  "license": "GPL",
+  "devDependencies": {
+    "electron": "^5.0.0"
+  },
+  "dependencies": {
+    "electron-packager": "^13.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/neri/fedit95.git"
+  },
+  "private": true
+}
