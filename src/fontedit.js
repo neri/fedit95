@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.mainBgDimming = 0;
     
     const dimWindow = (x = 1) => {
-        console.log('DIM', mainBgDimming, x);
+        mainBgDimming += x;
         if (mainBgDimming > 0) {
             $('#mainScreen').classList.add('blur');
         } else {
