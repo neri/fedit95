@@ -17,7 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
     window.currentEditNumber = 0x41;
     window.mainCanvas = new GlyphEditor('#mainCanvas');
     window.fontData = new FontData();
+    window.mainBgDimming = 0;
     
+    const dimWindow = (x = 1) => {
+        console.log('DIM', mainBgDimming, x);
+        if (mainBgDimming > 0) {
+            $('#mainScreen').classList.add('blur');
+        } else {
+            $('#mainScreen').classList.remove('blur');
+        }
+    }
+
     const GlyphSelectorRefresh = () => {
         if (currentEditNumber > MAX_UNICHAR) currentEditNumber = MAX_UNICHAR;
         $('#glyphCode').value = currentEditNumber.toString(16);
@@ -31,13 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const showDialog = (dialog) => {
-        $('#mainScreen').classList.add('blur');
+        dimWindow(1);
         $('#dialogBackground').style.display = 'block';
         dialog.style.display = 'block';
     }
 
     const closeDialog = (dialog) => {
-        $('#mainScreen').classList.remove('blur');
+        dimWindow(-1);
         $('#dialogBackground').style.display = 'none';
         dialog.style.display = 'none';
     }
@@ -81,9 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    const ImportFunction = () => {
-        if (fontData.import($('#base64Console').value)) {
-            localStorage.setItem(LS_WORKSPACE_KEY, $('#base64Console').value);
+    const loadData = (blob) => {
+        if (fontData.import(blob)) {
+            localStorage.setItem(LS_WORKSPACE_KEY, fontData.export());
             mainCanvas.resize(fontData.fontWidth, fontData.fontHeight);
             $('#fontName').value = fontData.fontName;
             $('#fontWidth').value = fontData.fontWidth;
@@ -97,8 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     $('#previewText').value = localStorage.getItem(LS_PREVIEW_KEY) || "The quick brown fox jumps over the lazy dog.";
-    $('#base64Console').value = localStorage.getItem(LS_WORKSPACE_KEY) || "Rk9OVFgyRk9OVE5BTUUIEAA=";
-    ImportFunction();
+    loadData(localStorage.getItem(LS_WORKSPACE_KEY) || "Rk9OVFgyRk9OVE5BTUUIEAA=");
 
     $('#fontWidth').addEventListener('input', () => resizeDOM());
     $('#fontHeight').addEventListener('input', () => resizeDOM());
@@ -161,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     $('#importButton').addEventListener('click', () => {
-        if (ImportFunction()) {
+        if (loadData($('#base64Console').value)) {
             closeDialog($('#saveLoadDialog'));
         }
     });
@@ -184,6 +193,46 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#fontName').addEventListener('input', () => {
         fontData.fontName = $('#fontName').value;
     })
+
+    $('html').addEventListener('dragover', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!window.nowDragging) {
+            window.nowDragging = true;
+            dimWindow(1);
+        }
+    }, false);
+
+    $('html').addEventListener('dragleave', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        window.nowDragging = false;
+        dimWindow(-1);
+    }, false);
+
+    $('html').addEventListener('drop', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        window.nowDragging = false;
+        dimWindow(-1);
+        const reader = new FileReader();
+        reader.addEventListener('load', (e) => {
+            loadData(e.target.result);
+        });
+        reader.readAsBinaryString(e.dataTransfer.files[0]);
+    }, false);
+
+    $('#loadButton').addEventListener('click', (e) => $('#loadFile').click(), false);
+
+    $('#loadFile').addEventListener('change', (e) => {
+        const reader = new FileReader();
+        reader.addEventListener('load', (e) => {
+            if (loadData(e.target.result)) {
+                closeDialog($('#saveLoadDialog'));
+            }
+        });
+        reader.readAsBinaryString(e.target.files[0]);
+    }, false);
 
 });
 
@@ -415,9 +464,12 @@ class FontData {
     import(data) {
         // TODO: original format
         if (data.startsWith("Rk9OVFgy")) {
-            // FONTX2
+            // FONTX2 (base64)
             const blob = atob(data);
             return this.importFontX2(blob);
+        } else if (data.startsWith('FONTX2')) {
+            // FONTX2 (blob)
+            return this.importFontX2(data);
         } else {
             return false;
         }
