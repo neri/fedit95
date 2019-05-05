@@ -184,8 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 class GlyphEditor {
-    static MAX_WIDTH = 32;
-    static MAX_HEIGHT = 32;
+    static get MAX_WIDTH() { return 32 }
+    static get MAX_HEIGHT() { return 32 }
     constructor(selector, widthSelector, heightSelector) {
         this.canvas = $(selector);
         this.widthSelector = $(widthSelector);
@@ -332,7 +332,7 @@ class GlyphEditor {
 
 
 class GlyphData {
-    static BIT_LEFT = 0x80000000;
+    static get BIT_LEFT() { return 0x80000000 }
     constructor(data = []) {
         this.data = [].concat(data);
     }
@@ -371,8 +371,9 @@ class GlyphData {
 
 
 class FontData {
-    static SIGNATUE = "";
-    static BASE64URL_TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    static get BASE64URL_TABLE() {
+        return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    }
     constructor() {
         this.data = [];
         this.fontWidth = 8;

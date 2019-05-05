@@ -47,7 +47,7 @@ fieldset {
     color: #FFF;
 }
 
-input[type=text], input[type=number] {
+input[type="text"], input[type="number"] {
     border: #AAA solid 1px;
     font: 10pt Menlo, "DejaVu Sans Mono", Consolas, "Lucida Console", monospace;
 }
@@ -57,11 +57,11 @@ textarea {
     font: 9pt Menlo, "DejaVu Sans Mono", Consolas, "Lucida Console", monospace;
 }
 
-input[type=number] {
+input[type="number"] {
     text-align: right;
 }
 
-input:read-only {
+input[readonly] {
     border: #AAA dashed 1px;
     background: transparent;
 }
@@ -80,7 +80,7 @@ nav {
     clear: both;
 }
 
-input[type=file] {
+input[type="file"] {
     width: 1px;
     height: 1px;
 }
