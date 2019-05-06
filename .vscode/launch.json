@@ -8,6 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Electron Main",
+            "env": {"NODE_ENV": "development"},
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
             "program": "${workspaceFolder}/src/main.js"
         }

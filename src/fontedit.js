@@ -7,27 +7,29 @@
 
 const $ = x => document.querySelector(x);
 
-const MIN_UNICHAR = 0x20;
-const MAX_UNICHAR = 0x7F;
+let app;
 
 document.addEventListener('DOMContentLoaded', () => {
-    window.fontEditor = new FontEdit();    
+    app = new FontEdit();    
 });
 
 
 class FontEdit {
     static get LS_WORKSPACE_KEY() { return "workSpace"; }
     static get LS_PREVIEW_KEY() { return "preview"; }
-
+    static get MIN_UNICHAR() { return 0x20 }
+    static get MAX_UNICHAR() { return 0x7F }
+    
     constructor() {
         this.currentEditCode = 0x41;
         this.fontData = new FontData();
         this.mainCanvas = new GlyphEditor('#mainCanvas', this.fontData);
         this.mainBgDimming = 0;
 
-        $('#previewText').value = localStorage.getItem(FontEdit.LS_PREVIEW_KEY) || "The quick brown fox jumps over the lazy dog.";
-        this.loadData(localStorage.getItem(FontEdit.LS_WORKSPACE_KEY) || "Rk9OVFgyRk9OVE5BTUUIEAA=");
-    
+        $('#previewText').value = localStorage.getItem(FontEdit.LS_PREVIEW_KEY) ||
+        "The quick brown fox jumps over the lazy dog.\nETAOIN SHRDLU CMFWYP VBGKQJ XZ 1234567890";
+        this.loadData(localStorage.getItem(FontEdit.LS_WORKSPACE_KEY) || "Rk9OVFgyICAgICAgICAIEAA=");
+        
         $('#fontWidth').addEventListener('input', () => this.resizeDOM());
         $('#fontHeight').addEventListener('input', () => this.resizeDOM());
         
@@ -48,7 +50,7 @@ class FontEdit {
         });
         
         $('#glyphLt').addEventListener('click', () => {
-            if (this.currentEditCode > MIN_UNICHAR) {
+            if (this.currentEditCode > FontEdit.MIN_UNICHAR) {
                 this.currentEditCode--;
                 this.refreshGlyphSelector();
             }
@@ -153,7 +155,7 @@ class FontEdit {
     }
 
     refreshGlyphSelector () {
-        if (this.currentEditCode > MAX_UNICHAR) this.currentEditCode = MAX_UNICHAR;
+        if (this.currentEditCode > FontEdit.MAX_UNICHAR) this.currentEditCode = FontEdit.MAX_UNICHAR;
         $('#glyphCode').value = this.currentEditCode.toString(16);
         let c = String.fromCharCode(this.currentEditCode);
         $('#glyphChar').value = c;
@@ -285,6 +287,9 @@ class GlyphEditor {
         this.canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
         }, false);
+        this.canvas.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+        }, false);
 
     }
     convertMouseEvent(e) {
@@ -302,7 +307,7 @@ class GlyphEditor {
         return {ex, ey};
     }
     resize(width, height) {
-        if (width > 0 && width <= GlyphData.MAX_WIDTH && height > 0 && height < GlyphData.MAX_HEIGHT)
+        if (width > 0 && width <= GlyphData.MAX_WIDTH && height > 0 && height <= GlyphData.MAX_HEIGHT)
         {} else return false;
 
         this.width = width;
@@ -476,13 +481,15 @@ class FontData {
             fontHeight < 1 || fontHeight > GlyphData.MAX_HEIGHT) {
             return false;
         }
+        const FONTX_MIN_CHAR = 0x20
+        const FONTX_MAX_CHAR = 0x7F
         this.fontWidth = fontWidth;
         this.fontHeight = fontHeight;
         this.fontName = blob.slice(6, 14).trim();
         const w8 = Math.floor((fontWidth + 7) / 8);
         const fontSize = w8 * fontHeight;
         this.data = new Array(256);
-        for (let i = MIN_UNICHAR; i <= MAX_UNICHAR; i++) {
+        for (let i = FONTX_MIN_CHAR; i <= FONTX_MAX_CHAR; i++) {
             const base = 17 + fontSize * i;
             let glyph = new GlyphData();
             for (let j = 0; j < fontHeight; j++) {

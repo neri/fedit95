@@ -5,6 +5,7 @@
   "main": "src/main.js",
   "scripts": {
     "build": "electron-packager src fedit95 --platform=darwin --arch=x64 --overwrite",
+    "build-win32": "electron-packager src fedit95 --platform=win32 --arch=all --overwrite",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

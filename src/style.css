@@ -10,6 +10,10 @@ body {
     padding: 0;
 }
 
+#mainScreen {
+    width: 620px;
+}
+
 fieldset {
     border: #CCC dashed 1px;
 }
@@ -118,10 +122,6 @@ input[type="file"] {
     vertical-align: top;
 }
 
-/* #base64Console {
-    width: 100%;
-} */
-
 #arrows {
     border-collapse: collapse;
     border: none;
@@ -129,7 +129,7 @@ input[type="file"] {
 }
 
 .blur {
-    filter: blur(2px) grayscale();
+    filter: blur(2px);
 }
 
 #dialogBackground {

@@ -5,10 +5,9 @@ const url = require('url');
 
 let mainWindow;
 
-function createWindow() {
+const createWindow = () => {
   mainWindow = new BrowserWindow(
     {
-      title: "jp.nerry.fedit95",
       width: 640, 
       height: 480,
       minWidth: 640,
@@ -22,8 +21,11 @@ function createWindow() {
       slashes: true
   }));
 
-  mainWindow.setAutoHideMenuBar(true);
-  // mainWindow.openDevTools();
+  mainWindow.setMenuBarVisibility(false)
+  mainWindow.setAutoHideMenuBar(true)
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.openDevTools()
+  }
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -41,7 +43,8 @@ app.on('ready', () => {
         {type: "separator"},
         {label: "Quit", role: "quit"},
       ]
-    }
+    },
+    {label: "Edit", role: "editMenu"}
   ]
   
   const menu = Menu.buildFromTemplate(template)
