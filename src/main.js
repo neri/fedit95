@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, Menu, BrowserWindow } = require('electron');
 
 const path = require('path');
 const url = require('url');
@@ -22,6 +22,7 @@ function createWindow() {
       slashes: true
   }));
 
+  mainWindow.setAutoHideMenuBar(true);
   // mainWindow.openDevTools();
 
   mainWindow.on('closed', () => {
@@ -29,7 +30,25 @@ function createWindow() {
   });
 }
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  const template = [
+    {
+      label: "Main",
+      submenu: [
+        {label: "About", role: "about"},
+        {type: "separator"},
+        {label: "DevTool", role: "toggledevtools"},
+        {type: "separator"},
+        {label: "Quit", role: "quit"},
+      ]
+    }
+  ]
+  
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
+
+  createWindow()
+});
 
 app.on('window-all-closed', () => {
   // if (process.platform !== 'darwin') {

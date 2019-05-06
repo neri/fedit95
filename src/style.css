@@ -45,9 +45,17 @@ fieldset {
     color: #FFF;
 }
 
+.buttonActive:hover {
+    background: #669;
+}
+
 .buttonDestructive {
     background: #F33;
     color: #FFF;
+}
+
+.buttonDestructive:hover {
+    background: #933;
 }
 
 input[type="text"], input[type="number"] {
