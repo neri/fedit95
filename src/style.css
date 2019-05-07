@@ -1,6 +1,6 @@
 
 html {
-    background: #EEE;
+    background: #FFF;
     color: #777;
     font: 10pt sans-serif;
 }
@@ -91,7 +91,7 @@ input[readonly] {
     width: 160px;
 }
 
-nav {
+#editor:after {
     clear: both;
 }
 
@@ -159,6 +159,7 @@ input[type="file"] {
     transform: translateY(-50%) translateX(-50%);
     border-radius: 6px;
     padding: 6px;
+    background: #FFF;
 }
 
 .dialogInner h2 {
@@ -170,10 +171,6 @@ input[type="file"] {
 
 .dialogInner h2:after {
     clear: both;
-}
-
-#saveLoadDialog > .dialogInner {
-    background: #FFF;
 }
 
 .closeButton {

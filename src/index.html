@@ -11,8 +11,13 @@
     
     <div id="mainScreen">
         
+        <nav>
+            <a id="saveLoadButton" class="button">Save / Load</a>
+            <a id="exportMenuButton" class="button">Export</a>
+        </nav>
+        
         <aside id="leftTool">
-            <div class="glyph">
+            <div id="glyphSelector">
                 <fieldset>
                     <legend>Glyph Selector</legend>
                     <label>Char: <input id="glyphChar" type="text" size="2" placeholder="X"></label>
@@ -24,7 +29,7 @@
                 </fieldset>
             </div>
             
-            <div class="general">
+            <div id="general">
                 <fieldset>
                     <legend>Font Info</legend>
                     <label>FONTX Name: <input id="fontName" type="text" maxlength="8" placeholder="FONTNAME" style="width: 8em;"></label>
@@ -32,8 +37,6 @@
                     <label>Width: <input id="fontWidth" type="number" min="1" value="8" style="width: 3em;"></label>
                     <br>
                     <label>Height: <input id="fontHeight" type="number" min="1" value="16" style="width: 3em;"></label>
-                    <br>
-                    <a id="saveLoadButton" class="button">Save / Load</a>
                 </fieldset>
             </div>
         </aside>
@@ -58,15 +61,13 @@
             </fieldset>
         </aside>
         
-        <div class="editor">
+        <div id="editor">
             <div id="mainCanvasContainer">
                 <canvas id="mainCanvas"></canvas>
             </div>
         </div>
         
-        <nav></nav>
-        
-        <div class="preview">
+        <div id="preview">
             <fieldset>
                 <legend>Preview</legend>
                 <label>
@@ -75,18 +76,28 @@
                 </label>
             </fieldset>
         </div>
-
+        
         <input id="loadFile" type="file">
+        <a id="downloadLink"></a>
         
     </div>
     
     <div id="dialogBackground"></div>
     
+    <div id="exportMenu" class="dialog">
+        <div class="dialogInner">
+            <a id="closeExportMenuButton" class="buttonDestructive closeButton">&#x2715;</a>
+            <h2>Export...</h2>
+            <a id="exportImageButton" class="button">Export as PNG</a>
+            <br>
+        </div>
+    </div>
+    
     <div id="saveLoadDialog" class="dialog">
         <div class="dialogInner">
             <a id="closeSaveLoadDialogButton" class="buttonDestructive closeButton">&#x2715;</a>
-            <h2>Save / Load</h2>
-            <a id="importButton" class="buttonActive">Import</a>
+            <h2>&#x1F4BE; Save / Load</h2>
+            <a id="importButton" class="buttonActive">Load</a>
             <a id="loadButton" class="button">Load Local File</a>
             <br>
             <textarea id="base64Console" cols="40" rows="5" placeholder="base64:"></textarea>

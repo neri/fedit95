@@ -95,6 +95,14 @@ class FontEdit {
             this.closeDialog($('#saveLoadDialog'));
         })
     
+        $('#exportMenuButton').addEventListener('click', () => {
+            this.showDialog($('#exportMenu'))
+        })
+
+        $('#closeExportMenuButton').addEventListener('click', () => {
+            this.closeDialog($('#exportMenu'))
+        })
+
         $('#fontName').addEventListener('input', () => {
             this.fontData.fontName = $('#fontName').value;
         })
@@ -142,6 +150,15 @@ class FontEdit {
             });
             reader.readAsBinaryString(e.target.files[0]);
         }, false);
+
+        $('#exportImageButton').addEventListener('click', () => {
+            const canvas = document.createElement('canvas')
+            this.fontData.exportImage(canvas, 16)
+            const tag = $('#downloadLink')
+            tag.href = canvas.toDataURL('image/png')
+            tag.download = (this.fontData.fontName || 'font') + '.png'
+            tag.click()
+        })
 
     }
 
@@ -196,7 +213,6 @@ class FontEdit {
         const fontHeight = this.mainCanvas.height;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, maxWidth, maxHeight);
-        ctx.fillStyle = "#000";
         for (let i = 0; i < str.length; i++) {
             const char = str.charCodeAt(i);
             switch (char) {
@@ -205,18 +221,11 @@ class FontEdit {
                 cursorY += fontHeight;
                 break;
                 default:
-                const font = this.fontData.getGlyph(char);
                 if (cursorX + fontWidth > maxWidth) {
                     cursorX = 0;
                     cursorY += fontHeight;
                 }
-                for (let j = 0; j < fontWidth; j++) {
-                    for (let k = 0; k < fontHeight; k++) {
-                        if (font.getPixel(j ,k)) {
-                            ctx.fillRect(cursorX + j, cursorY + k, 1, 1);
-                        }
-                    }
-                }
+                this.fontData.drawChar(char, ctx, cursorX, cursorY, 0)
                 cursorX += fontWidth;
             }
             if (cursorY >= maxHeight) break;
@@ -426,6 +435,28 @@ class GlyphData {
     shiftD() {
         this.rawData.unshift(0);
     }
+    draw(ctx, x, y, width, height, color) {
+        let imageData = ctx.getImageData(x, y, width, height)
+        const R = (color & 0xFF0000) >> 16
+        const G = (color & 0x00FF00) >> 8
+        const B = (color & 0x0000FF)
+        const A = 0xFF
+        let index = 0
+        for (let i = 0; i < height; i++) {
+            const rawData = this.rawData[i]
+            for (let j = 0; j < width; j++) {
+                if (rawData & (GlyphData.BIT_LEFT >>> j)) {
+                    imageData.data[index++] = R
+                    imageData.data[index++] = G
+                    imageData.data[index++] = B
+                    imageData.data[index++] = A
+                } else {
+                    index += 4
+                }
+            }
+        }
+        ctx.putImageData(imageData, x, y)
+    }
 }
 
 
@@ -444,6 +475,10 @@ class FontData {
     }
     setGlyph(code, glyph) {
         this.data[code] = glyph.clone();
+    }
+    drawChar(code, ctx, x, y, color) {
+        const glyph = this.getGlyph(code)
+        glyph.draw(ctx, x, y, this.fontWidth, this.fontHeight, color)
     }
     validateFontName(fontName = this.fontName) {
         let result = fontName.trim().split('').reduce((a, v) => {
@@ -481,15 +516,13 @@ class FontData {
             fontHeight < 1 || fontHeight > GlyphData.MAX_HEIGHT) {
             return false;
         }
-        const FONTX_MIN_CHAR = 0x20
-        const FONTX_MAX_CHAR = 0x7F
         this.fontWidth = fontWidth;
         this.fontHeight = fontHeight;
         this.fontName = blob.slice(6, 14).trim();
         const w8 = Math.floor((fontWidth + 7) / 8);
         const fontSize = w8 * fontHeight;
         this.data = new Array(256);
-        for (let i = FONTX_MIN_CHAR; i <= FONTX_MAX_CHAR; i++) {
+        for (let i = 0; i <= 255; i++) {
             const base = 17 + fontSize * i;
             let glyph = new GlyphData();
             for (let j = 0; j < fontHeight; j++) {
@@ -525,5 +558,16 @@ class FontData {
             output.push(rep.join(''));
         }
         return btoa(output.join(''));
+    }
+    exportImage(canvas, cols) {
+        const { fontWidth, fontHeight } = this
+        const ctx = canvas.getContext('2d')
+        canvas.width = fontWidth * cols
+        canvas.height = (fontHeight * this.data.length + cols - 1)/ cols
+        for (let i = 0; i < this.data.length; i++) {
+            const x = fontWidth * (i % cols)
+            const y = fontHeight * Math.floor(i / cols)
+            this.drawChar(i, ctx, x, y, 0)
+        }
     }
 }
