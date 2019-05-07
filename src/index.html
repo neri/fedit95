@@ -87,7 +87,7 @@
     <div id="exportMenu" class="dialog">
         <div class="dialogInner">
             <a id="closeExportMenuButton" class="buttonDestructive closeButton">&#x2715;</a>
-            <h2>Export...</h2>
+            <h2>&#x1F5A8; Export...</h2>
             <a id="exportImageButton" class="button">Export as PNG</a>
             <br>
         </div>
@@ -103,6 +103,23 @@
             <textarea id="base64Console" cols="40" rows="5" placeholder="base64:"></textarea>
             <br>
             You can also manage above text data yourself.
+        </div>
+    </div>
+    
+    <div id="importImageDialog" class="dialog">
+        <div class="dialogInner">
+            <a id="closeImportImageDialogButton" class="buttonDestructive closeButton">&#x2715;</a>
+            <h2>&#x1F4F7; Import Image</h2>
+            <a id="importImageButton" class="buttonActive">Import</a>
+            <label>Width: <input id="importImageWidth" type="number" min="1" style="width: 3em;" value="8"></label>
+            <label>Height: <input id="importImageHeight" type="number" min="1" style="width: 3em;" value="16"></label>
+            <br>
+            <label>
+                Sample:
+                <canvas id="importPreviewCanvas"></canvas>
+            </label>
+            <br>
+            <canvas id="importImageCanvas"></canvas>
         </div>
     </div>
     

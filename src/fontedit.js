@@ -1,7 +1,7 @@
 /*
-    Bitmap Font Editor
-    Copyright (C) 2019 Nerry, https://nerry.jp/
-    LICENSE: GPL
+Bitmap Font Editor
+Copyright (C) 2019 Nerry, https://nerry.jp/
+LICENSE: GPL
 */
 'use strict';
 
@@ -25,7 +25,7 @@ class FontEdit {
         this.fontData = new FontData();
         this.mainCanvas = new GlyphEditor('#mainCanvas', this.fontData);
         this.mainBgDimming = 0;
-
+        
         $('#previewText').value = localStorage.getItem(FontEdit.LS_PREVIEW_KEY) ||
         "The quick brown fox jumps over the lazy dog.\nETAOIN SHRDLU CMFWYP VBGKQJ XZ 1234567890";
         this.loadData(localStorage.getItem(FontEdit.LS_WORKSPACE_KEY) || "Rk9OVFgyICAgICAgICAIEAA=");
@@ -80,11 +80,11 @@ class FontEdit {
         });
         
         $('#previewText').addEventListener('input', () => this.refreshPreview());
-    
+        
         $('#previewText').addEventListener('change', () => {
             localStorage.setItem(FontEdit.LS_PREVIEW_KEY, $('#previewText').value);
         })
-    
+        
         $('#saveLoadButton').addEventListener('click', () => {
             $('#base64Console').value = this.fontData.export();
             this.showDialog($('#saveLoadDialog'));
@@ -94,19 +94,19 @@ class FontEdit {
         $('#closeSaveLoadDialogButton').addEventListener('click', () => {
             this.closeDialog($('#saveLoadDialog'));
         })
-    
+        
         $('#exportMenuButton').addEventListener('click', () => {
             this.showDialog($('#exportMenu'))
         })
-
+        
         $('#closeExportMenuButton').addEventListener('click', () => {
             this.closeDialog($('#exportMenu'))
         })
-
+        
         $('#fontName').addEventListener('input', () => {
             this.fontData.fontName = $('#fontName').value;
         })
-    
+        
         $('html').addEventListener('dragover', (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -115,7 +115,7 @@ class FontEdit {
                 this.dimWindow(1);
             }
         }, false);
-    
+        
         $('html').addEventListener('dragleave', (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -124,7 +124,7 @@ class FontEdit {
                 this.dimWindow(-1);
             }
         }, false);
-    
+        
         $('html').addEventListener('drop', (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -138,9 +138,9 @@ class FontEdit {
             });
             reader.readAsBinaryString(e.dataTransfer.files[0]);
         }, false);
-    
+        
         $('#loadButton').addEventListener('click', () => $('#loadFile').click(), false);
-    
+        
         $('#loadFile').addEventListener('change', (e) => {
             const reader = new FileReader();
             reader.addEventListener('load', (e) => {
@@ -150,18 +150,31 @@ class FontEdit {
             });
             reader.readAsBinaryString(e.target.files[0]);
         }, false);
-
+        
         $('#exportImageButton').addEventListener('click', () => {
             const canvas = document.createElement('canvas')
             this.fontData.exportImage(canvas, 16)
             const tag = $('#downloadLink')
             tag.href = canvas.toDataURL('image/png')
-            tag.download = (this.fontData.fontName || 'font') + '.png'
+            tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.png'
             tag.click()
         })
+        
+        $('#closeImportImageDialogButton').addEventListener('click', () => {
+            this.closeDialog($('#importImageDialog'))
+        }, false)
+
+        $('#importImageWidth').addEventListener('input', () => this.resizeImport(), false)
+        $('#importImageHeight').addEventListener('input', () => this.resizeImport(), false)
+
+        $('#importImageButton').addEventListener('click', () => {
+            this.setFontData(this.importFont)
+            this.importFont = null
+            this.closeDialog($('#importImageDialog'))
+        }, false)
 
     }
-
+    
     dimWindow (x = 1) {
         this.mainBgDimming += x;
         if (this.mainBgDimming > 0) {
@@ -170,7 +183,7 @@ class FontEdit {
             $('#mainScreen').classList.remove('blur');
         }
     }
-
+    
     refreshGlyphSelector () {
         if (this.currentEditCode > FontEdit.MAX_UNICHAR) this.currentEditCode = FontEdit.MAX_UNICHAR;
         $('#glyphCode').value = this.currentEditCode.toString(16);
@@ -188,59 +201,63 @@ class FontEdit {
             $('#fontHeight').value = this.mainCanvas.height;
         }
     }
-
+    
     showDialog (dialog) {
+        if (dialog.style.display === 'block') return
         this.dimWindow(1);
         $('#dialogBackground').style.display = 'block';
         dialog.style.display = 'block';
     }
-
+    
     closeDialog (dialog) {
+        if (dialog.style.display === 'none') return
         this.dimWindow(-1);
         $('#dialogBackground').style.display = 'none';
         dialog.style.display = 'none';
     }
-
+    
     refreshPreview () {
         const str = $('#previewText').value;
         const canvas = $('#previewCanvas');
-        const maxWidth = canvas.clientWidth;
-        const maxHeight = $('#previewText').clientHeight;
-        canvas.setAttribute('width', maxWidth);
-        canvas.setAttribute('height', maxHeight);
-        let cursorX = 0, cursorY = 0;
-        const fontWidth = this.mainCanvas.width;
-        const fontHeight = this.mainCanvas.height;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, maxWidth, maxHeight);
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            switch (char) {
-                case 0x0A: // LF
-                cursorX = 0;
-                cursorY += fontHeight;
-                break;
-                default:
-                if (cursorX + fontWidth > maxWidth) {
-                    cursorX = 0;
-                    cursorY += fontHeight;
-                }
-                this.fontData.drawChar(char, ctx, cursorX, cursorY, 0)
-                cursorX += fontWidth;
-            }
-            if (cursorY >= maxHeight) break;
-        }
+        canvas.setAttribute('height', $('#previewText').clientHeight);
+        this.fontData.drawText(str, canvas)
     }
     
+    setFontData(fontData) {
+        this.fontData = fontData
+        localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontData.export());
+        this.mainCanvas.resize(this.fontData.fontWidth, this.fontData.fontHeight);
+        $('#fontName').value = this.fontData.fontName;
+        $('#fontWidth').value = this.fontData.fontWidth;
+        $('#fontHeight').value = this.fontData.fontHeight;
+        this.refreshGlyphSelector();
+        this.refreshPreview();
+    }
+
     loadData (blob) {
-        if (this.fontData.import(blob)) {
-            localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontData.export());
-            this.mainCanvas.resize(this.fontData.fontWidth, this.fontData.fontHeight);
-            $('#fontName').value = this.fontData.fontName;
-            $('#fontWidth').value = this.fontData.fontWidth;
-            $('#fontHeight').value = this.fontData.fontHeight;
-            this.refreshGlyphSelector();
-            this.refreshPreview();
+        if (blob.startsWith('\x89PNG\x0D\x0A\x1A\x0A')) {
+            const img = new Image()
+            img.addEventListener('load', () => {
+                const { width, height } = img
+                if (width > 512 || height > 256) {
+                    alert('ERROR: Image too large')
+                    return
+                }
+                $('#importImageWidth').value = width / 16
+                $('#importImageHeight').value = height / 8
+                this.importFont = new FontData()
+                const canvas = $('#importImageCanvas')
+                canvas.width = width
+                canvas.height = height
+                const ctx = canvas.getContext('2d')
+                ctx.drawImage(img, 0, 0)
+                this.showDialog($('#importImageDialog'))
+                this.resizeImport()
+            })
+            img.src = "data:image/png;base64," + btoa(blob)
+            return true;
+        } else if (this.fontData.import(blob)) {
+            this.setFontData(this.fontData)
             return true;
         } else {
             alert('ERROR: Cannot import data');
@@ -248,6 +265,17 @@ class FontEdit {
         }
     }
 
+    resizeImport() {
+        const fontWidth = parseInt($('#importImageWidth').value) | 0;
+        const fontHeight = parseInt($('#importImageHeight').value) | 0;
+        if (fontWidth == 0 || fontHeight == 0) return;
+        const canvas = $('#importPreviewCanvas')
+        canvas.width = Math.max(256, $('#importImageCanvas').width)
+        canvas.height = fontHeight;
+        this.importFont.importImage($('#importImageCanvas'), fontWidth, fontHeight)
+        this.importFont.drawText("The quick brown fox jumps over the lazy dog.", canvas)
+    }
+    
 }
 
 
@@ -299,7 +327,7 @@ class GlyphEditor {
         this.canvas.addEventListener('touchcancel', (e) => {
             e.preventDefault();
         }, false);
-
+        
     }
     convertMouseEvent(e) {
         const tr = e.target.getBoundingClientRect();
@@ -318,7 +346,7 @@ class GlyphEditor {
     resize(width, height) {
         if (width > 0 && width <= GlyphData.MAX_WIDTH && height > 0 && height <= GlyphData.MAX_HEIGHT)
         {} else return false;
-
+        
         this.width = width;
         this.height = height;
         this.fontData.fontWidth = width;
@@ -476,10 +504,39 @@ class FontData {
     setGlyph(code, glyph) {
         this.data[code] = glyph.clone();
     }
-    drawChar(code, ctx, x, y, color) {
+    drawChar(code, ctx, x, y, color = 0x000000) {
         const glyph = this.getGlyph(code)
         glyph.draw(ctx, x, y, this.fontWidth, this.fontHeight, color)
     }
+    drawText(str, canvas, x = 0, y = 0, w = null, h = null, color = 0x000000) {
+        let cursorX = x, cursorY = y
+        const maxWidth = w || canvas.clientWidth
+        const maxHeight = h || canvas.clientHeight
+        canvas.width = maxWidth
+        canvas.height = maxHeight
+        const {fontWidth, fontHeight} = this
+        const ctx = canvas.getContext('2d');
+        
+        ctx.clearRect(0, 0, maxWidth, maxHeight);
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            switch (char) {
+                case 0x0A: // LF
+                cursorX = 0;
+                cursorY += fontHeight;
+                break;
+                default:
+                if (cursorX + fontWidth > maxWidth) {
+                    cursorX = 0;
+                    cursorY += fontHeight;
+                }
+                this.drawChar(char, ctx, cursorX, cursorY, 0)
+                cursorX += fontWidth;
+            }
+            if (cursorY >= maxHeight) break;
+        }
+    }
+    
     validateFontName(fontName = this.fontName) {
         let result = fontName.trim().split('').reduce((a, v) => {
             if (FontData.BASE64URL_TABLE.indexOf(v) >= 0) {
@@ -514,60 +571,89 @@ class FontData {
         if (type != 0 ||
             fontWidth < 1 || fontWidth > GlyphData.MAX_WIDTH ||
             fontHeight < 1 || fontHeight > GlyphData.MAX_HEIGHT) {
-            return false;
-        }
-        this.fontWidth = fontWidth;
-        this.fontHeight = fontHeight;
-        this.fontName = blob.slice(6, 14).trim();
-        const w8 = Math.floor((fontWidth + 7) / 8);
-        const fontSize = w8 * fontHeight;
-        this.data = new Array(256);
-        for (let i = 0; i <= 255; i++) {
-            const base = 17 + fontSize * i;
-            let glyph = new GlyphData();
-            for (let j = 0; j < fontHeight; j++) {
-                let rawData = 0;
-                for (let k = 0; k < w8; k++) {
-                    const byte = blob.charCodeAt(base + j * w8 + k);
-                    rawData |= (byte << (24 - k * 8));
-                }
-                glyph.rawData[j] = rawData;
+                return false;
             }
-            this.data[i] = glyph;
-        }
-        return true;
-    }
-    exportFontX2() {
-        let output = [];
-        let header = ["FONTX2"];
-        header.push(this.validateFontName());
-        const { fontWidth, fontHeight } = this;
-        header.push(String.fromCharCode(fontWidth, fontHeight, 0));
-        output.push(header.join(''));
-        const w8 = Math.floor((fontWidth + 7) / 8);
-        for (let i = 0; i < 256; i++) {
-            let rep = [];
-            const glyph = this.data[i] || new GlyphData();
-            for (let j = 0; j < fontHeight; j++) {
-                const rawData = glyph.rawData[j] || 0;
-                for (let k = 0; k < w8; k++) {
-                    const byte = (rawData >>> (24 - k * 8)) & 0xFF;
-                    rep.push(String.fromCharCode(byte));
+            this.fontWidth = fontWidth;
+            this.fontHeight = fontHeight;
+            this.fontName = blob.slice(6, 14).trim();
+            const w8 = Math.floor((fontWidth + 7) / 8);
+            const fontSize = w8 * fontHeight;
+            this.data = new Array(256);
+            for (let i = 0; i <= 255; i++) {
+                const base = 17 + fontSize * i;
+                let glyph = new GlyphData();
+                for (let j = 0; j < fontHeight; j++) {
+                    let rawData = 0;
+                    for (let k = 0; k < w8; k++) {
+                        const byte = blob.charCodeAt(base + j * w8 + k);
+                        rawData |= (byte << (24 - k * 8));
+                    }
+                    glyph.rawData[j] = rawData;
                 }
+                this.data[i] = glyph;
             }
-            output.push(rep.join(''));
+            return true;
         }
-        return btoa(output.join(''));
-    }
-    exportImage(canvas, cols) {
-        const { fontWidth, fontHeight } = this
-        const ctx = canvas.getContext('2d')
-        canvas.width = fontWidth * cols
-        canvas.height = (fontHeight * this.data.length + cols - 1)/ cols
-        for (let i = 0; i < this.data.length; i++) {
-            const x = fontWidth * (i % cols)
-            const y = fontHeight * Math.floor(i / cols)
-            this.drawChar(i, ctx, x, y, 0)
+        exportFontX2() {
+            let output = [];
+            let header = ["FONTX2"];
+            header.push(this.validateFontName());
+            const { fontWidth, fontHeight } = this;
+            header.push(String.fromCharCode(fontWidth, fontHeight, 0));
+            output.push(header.join(''));
+            const w8 = Math.floor((fontWidth + 7) / 8);
+            for (let i = 0; i < 256; i++) {
+                let rep = [];
+                const glyph = this.data[i] || new GlyphData();
+                for (let j = 0; j < fontHeight; j++) {
+                    const rawData = glyph.rawData[j] || 0;
+                    for (let k = 0; k < w8; k++) {
+                        const byte = (rawData >>> (24 - k * 8)) & 0xFF;
+                        rep.push(String.fromCharCode(byte));
+                    }
+                }
+                output.push(rep.join(''));
+            }
+            return btoa(output.join(''));
+        }
+        exportImage(canvas, cols) {
+            const { fontWidth, fontHeight } = this
+            const ctx = canvas.getContext('2d')
+            const maxLength = 128
+            canvas.width = fontWidth * cols
+            canvas.height = (fontHeight * maxLength + cols - 1)/ cols
+            for (let i = 0; i < maxLength; i++) {
+                const x = fontWidth * (i % cols)
+                const y = fontHeight * Math.floor(i / cols)
+                this.drawChar(i, ctx, x, y, 0)
+            }
+        }
+        importImage(canvas, fontWidth, fontHeight) {
+            this.fontWidth = fontWidth
+            this.fontHeight = fontHeight
+            const ctx = canvas.getContext('2d')
+            const maxWidth = canvas.width
+            const cols = Math.floor(maxWidth / fontWidth)
+            const baseChar = 0x00
+            const charCount = 0x80
+            for (let i = 0; i < charCount; i++) {
+                const x = i % cols * fontWidth
+                const y = Math.floor(i / cols) * fontHeight
+                const imageData = ctx.getImageData(x, y, fontWidth, fontHeight)
+                let index = 0
+                let glyph = new GlyphData()
+                for (let j = 0; j < fontHeight; j++) {
+                    let rawData = 0
+                    for (let k = 0; k < fontWidth; k++) {
+                        if (imageData.data[index + 3] > 0) {
+                            rawData |= (GlyphData.BIT_LEFT >>> k)
+                        }
+                        index += 4
+                    }
+                    glyph.rawData[j] = rawData
+                }
+                this.data[baseChar + i] = glyph
+            }
         }
     }
-}
+    

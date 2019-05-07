@@ -179,3 +179,7 @@ input[type="file"] {
     right: -8px;
     top: -8px; */
 }
+
+#importImageCanvas {
+    border: #AAA solid 1px;
+}
