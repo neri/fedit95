@@ -11,10 +11,12 @@
     
     <div id="mainScreen">
         
-        <nav>
-            <a id="saveLoadButton" class="button">Save / Load</a>
-            <a id="exportMenuButton" class="button">Export</a>
-        </nav>
+        <header>
+            <nav>
+                <a id="saveLoadButton" class="button">Save / Load</a>
+                <a id="exportMenuButton" class="button">Export</a>
+            </nav>
+        </header>
         
         <aside id="leftTool">
             <div id="glyphSelector">
@@ -78,7 +80,6 @@
         </div>
         
         <input id="loadFile" type="file">
-        <a id="downloadLink"></a>
         
     </div>
     
@@ -88,7 +89,9 @@
         <div class="dialogInner">
             <a id="closeExportMenuButton" class="buttonDestructive closeButton">&#x2715;</a>
             <h2>&#x1F5A8; Export...</h2>
-            <a id="exportImageButton" class="button">Export as PNG</a>
+            <a id="exportFontXButton" class="button">Export as FONTX2</a>
+            <br>
+            <a id="exportImageButton" class="button">Export as Image</a>
             <br>
         </div>
     </div>
@@ -106,22 +109,34 @@
         </div>
     </div>
     
-    <div id="importImageDialog" class="dialog">
+    <div id="exportImageDialog" class="dialog">
         <div class="dialogInner">
-            <a id="closeImportImageDialogButton" class="buttonDestructive closeButton">&#x2715;</a>
-            <h2>&#x1F4F7; Import Image</h2>
-            <a id="importImageButton" class="buttonActive">Import</a>
-            <label>Width: <input id="importImageWidth" type="number" min="1" style="width: 3em;" value="8"></label>
-            <label>Height: <input id="importImageHeight" type="number" min="1" style="width: 3em;" value="16"></label>
-            <br>
-            <label>
-                Sample:
-                <canvas id="importPreviewCanvas"></canvas>
-            </label>
-            <br>
-            <canvas id="importImageCanvas"></canvas>
+            <a id="closeExportImageDialogButton" class="buttonDestructive closeButton">&#x2715;</a>
+            <h2>&#x1F5BC; Export Image</h2>
+            <a id="saveExportImageButton" class="buttonActive">Export</a>
+            <img id="exportImageMain">
         </div>
     </div>
-    
+
+    <div id="importImageDialog" class="dialog">
+            <div class="dialogInner">
+                <a id="closeImportImageDialogButton" class="buttonDestructive closeButton">&#x2715;</a>
+                <h2>&#x1F4F7; Import from Image</h2>
+                <a id="importImageButton" class="buttonActive">Import</a>
+                <label>Width: <input id="importImageWidth" type="number" min="1" style="width: 3em;" value="8"></label>
+                <label>Height: <input id="importImageHeight" type="number" min="1" style="width: 3em;" value="16"></label>
+                <br>
+                <label>Offset X: <input id="importImageOffsetX" type="number" min="0" style="width: 3em;"></label>
+                <label>Offset Y: <input id="importImageOffsetY" type="number" min="0" style="width: 3em;"></label>
+                <br>
+                <label>
+                    Preview:
+                    <canvas id="importPreviewCanvas"></canvas>
+                </label>
+                <br>
+                <canvas id="importImageCanvas"></canvas>
+            </div>
+        </div>
+        
 </body>
 </html>

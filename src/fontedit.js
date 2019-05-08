@@ -23,7 +23,7 @@ class FontEdit {
     constructor() {
         this.currentEditCode = 0x41;
         this.fontData = new FontData();
-        this.mainCanvas = new GlyphEditor('#mainCanvas', this.fontData);
+        this.mainCanvas = new GlyphEditor('#mainCanvas');
         this.mainBgDimming = 0;
         
         $('#previewText').value = localStorage.getItem(FontEdit.LS_PREVIEW_KEY) ||
@@ -151,13 +151,37 @@ class FontEdit {
             reader.readAsBinaryString(e.target.files[0]);
         }, false);
         
+        $('#exportFontXButton').addEventListener('click', () => {
+            const url = 'data:;base64,' + this.fontData.exportFontX2()
+            const tag = document.createElement('a')
+            tag.href = url
+            tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.fnt'
+            tag.click()
+        })
+
         $('#exportImageButton').addEventListener('click', () => {
             const canvas = document.createElement('canvas')
             this.fontData.exportImage(canvas, 16)
-            const tag = $('#downloadLink')
-            tag.href = canvas.toDataURL('image/png')
+            // const tag = document.createElement('a')
+            // tag.href = canvas.toDataURL('image/png')
+            // tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.png'
+            // tag.click()
+
+            this.closeDialog($('#exportMenu'))
+            this.showDialog($('#exportImageDialog'))
+            const img = $('#exportImageMain')
+            img.src = canvas.toDataURL('image/png')
+        })
+
+        $('#saveExportImageButton').addEventListener('click', () => {
+            const tag = document.createElement('a')
+            tag.href = $('#exportImageMain').src
             tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.png'
             tag.click()
+        })
+
+        $('#closeExportImageDialogButton').addEventListener('click', () => {
+            this.closeDialog($('#exportImageDialog'))
         })
         
         $('#closeImportImageDialogButton').addEventListener('click', () => {
@@ -166,10 +190,13 @@ class FontEdit {
 
         $('#importImageWidth').addEventListener('input', () => this.resizeImport(), false)
         $('#importImageHeight').addEventListener('input', () => this.resizeImport(), false)
-
+        $('#importImageOffsetX').addEventListener('input', () => this.resizeImport(), false)
+        $('#importImageOffsetY').addEventListener('input', () => this.resizeImport(), false)
+        
         $('#importImageButton').addEventListener('click', () => {
             this.setFontData(this.importFont)
             this.importFont = null
+            this.importImgCanvas = null
             this.closeDialog($('#importImageDialog'))
         }, false)
 
@@ -197,8 +224,10 @@ class FontEdit {
         const fontHeight = parseInt($('#fontHeight').value) | 0;
         if (fontWidth == 0 || fontHeight == 0) return;
         if (!this.mainCanvas.resize(fontWidth, fontHeight)) {
-            $('#fontWidth').value = this.mainCanvas.width;
-            $('#fontHeight').value = this.mainCanvas.height;
+            this.fontData.fontWidth = this.mainCanvas.width
+            this.fontData.fontHeight = this.mainCanvas.height
+            $('#fontWidth').value = this.mainCanvas.width
+            $('#fontHeight').value = this.mainCanvas.height
         }
     }
     
@@ -243,13 +272,26 @@ class FontEdit {
                     alert('ERROR: Image too large')
                     return
                 }
-                $('#importImageWidth').value = width / 16
-                $('#importImageHeight').value = height / 8
+                let fontWidth = 8, fontHeight = 16, offsetX = 0, offsetY = 0
+                if ((width & 0xF) == 0) {
+                    if ((height % 6) == 0) {
+                        fontWidth = width / 16
+                        fontHeight = height / 6
+                    } else if ((height % 8) == 0) {
+                        fontWidth = width / 16
+                        fontHeight = height / 8
+                        offsetY = fontHeight * 2
+                    }
+                }
+                $('#importImageWidth').value = fontWidth
+                $('#importImageHeight').value = fontHeight
+                $('#importImageOffsetX').value = offsetX
+                $('#importImageOffsetY').value = offsetY
                 this.importFont = new FontData()
-                const canvas = $('#importImageCanvas')
-                canvas.width = width
-                canvas.height = height
-                const ctx = canvas.getContext('2d')
+                this.importImgCanvas = document.createElement('canvas')
+                this.importImgCanvas.width = width
+                this.importImgCanvas.height = height
+                const ctx = this.importImgCanvas.getContext('2d')
                 ctx.drawImage(img, 0, 0)
                 this.showDialog($('#importImageDialog'))
                 this.resizeImport()
@@ -266,23 +308,53 @@ class FontEdit {
     }
 
     resizeImport() {
-        const fontWidth = parseInt($('#importImageWidth').value) | 0;
-        const fontHeight = parseInt($('#importImageHeight').value) | 0;
+        const fontWidth = parseInt($('#importImageWidth').value) || 0
+        const fontHeight = parseInt($('#importImageHeight').value) || 0
+        const offsetX = parseInt($('#importImageOffsetX').value) || 0
+        const offsetY = parseInt($('#importImageOffsetY').value) || 0
         if (fontWidth == 0 || fontHeight == 0) return;
-        const canvas = $('#importPreviewCanvas')
-        canvas.width = Math.max(256, $('#importImageCanvas').width)
-        canvas.height = fontHeight;
-        this.importFont.importImage($('#importImageCanvas'), fontWidth, fontHeight)
-        this.importFont.drawText("The quick brown fox jumps over the lazy dog.", canvas)
+
+        const canvas0 = this.importImgCanvas
+        const ctx0 = canvas0.getContext('2d')
+        const { width, height } = canvas0
+
+        const canvas1 = $('#importImageCanvas')
+        canvas1.width = width + 1
+        canvas1.height = height + 1
+        const ctx1 = canvas1.getContext('2d')
+        ctx1.putImageData(ctx0.getImageData(0, 0, width, height), 0, 0)
+        const cols = Math.floor(width / fontWidth)
+        const rows = Math.floor(96 / cols)
+        const preferredWidth = fontWidth * cols
+        const preferredHeight = fontHeight * rows
+        ctx1.lineWidth = 1
+        ctx1.strokeStyle = 'rgba(127, 127, 255, 0.25)'
+        for (let i = 0; i <= cols; i++) {
+            ctx1.moveTo(offsetX + i * fontWidth, offsetY)
+            ctx1.lineTo(offsetX + i * fontWidth, offsetY + preferredHeight)
+            ctx1.stroke()
+        }
+        ctx1.strokeStyle = 'rgba(255, 127, 127, 0.25)'
+        for (let i = 0; i <= rows; i++) {
+            ctx1.moveTo(offsetX, offsetY + i * fontHeight)
+            ctx1.lineTo(offsetX + preferredWidth, offsetY + i * fontHeight)
+            ctx1.stroke()
+        }
+
+        this.importFont.importImage(canvas0, fontWidth, fontHeight, offsetX, offsetY)
+
+        const canvas2 = $('#importPreviewCanvas')
+        canvas2.width = Math.max(256, this.importImgCanvas.width)
+        canvas2.height = fontHeight;
+        this.importFont.drawText('ABCD abcd 1234', canvas2)
     }
     
 }
 
 
 class GlyphEditor {
-    constructor(selector, fontData) {
+    constructor(selector) {
         this.canvas = $(selector);
-        this.fontData = fontData;
         this.margin = 8;
         this.glyph = new GlyphData();
         
@@ -349,8 +421,6 @@ class GlyphEditor {
         
         this.width = width;
         this.height = height;
-        this.fontData.fontWidth = width;
-        this.fontData.fontHeight = height;
         const long = Math.max(width, height);
         if (long <= 16) {
             this.scale = 16;
@@ -463,7 +533,7 @@ class GlyphData {
     shiftD() {
         this.rawData.unshift(0);
     }
-    draw(ctx, x, y, width, height, color) {
+    draw(ctx, x, y, width, height, color = 0x000000) {
         let imageData = ctx.getImageData(x, y, width, height)
         const R = (color & 0xFF0000) >> 16
         const G = (color & 0x00FF00) >> 8
@@ -510,10 +580,8 @@ class FontData {
     }
     drawText(str, canvas, x = 0, y = 0, w = null, h = null, color = 0x000000) {
         let cursorX = x, cursorY = y
-        const maxWidth = w || canvas.clientWidth
-        const maxHeight = h || canvas.clientHeight
-        canvas.width = maxWidth
-        canvas.height = maxHeight
+        const maxWidth = w || canvas.width
+        const maxHeight = h || canvas.height
         const {fontWidth, fontHeight} = this
         const ctx = canvas.getContext('2d');
         
@@ -530,7 +598,7 @@ class FontData {
                     cursorX = 0;
                     cursorY += fontHeight;
                 }
-                this.drawChar(char, ctx, cursorX, cursorY, 0)
+                this.drawChar(char, ctx, cursorX, cursorY, color)
                 cursorX += fontWidth;
             }
             if (cursorY >= maxHeight) break;
@@ -619,36 +687,44 @@ class FontData {
         exportImage(canvas, cols) {
             const { fontWidth, fontHeight } = this
             const ctx = canvas.getContext('2d')
-            const maxLength = 128
+            const baseChar = 0x20
+            const charCount = 0x80 - baseChar
             canvas.width = fontWidth * cols
-            canvas.height = (fontHeight * maxLength + cols - 1)/ cols
-            for (let i = 0; i < maxLength; i++) {
+            canvas.height = Math.floor((fontHeight * charCount + cols - 1) / cols)
+            for (let i = 0; i < charCount; i++) {
                 const x = fontWidth * (i % cols)
                 const y = fontHeight * Math.floor(i / cols)
-                this.drawChar(i, ctx, x, y, 0)
+                this.drawChar(baseChar + i, ctx, x, y, 0)
             }
         }
-        importImage(canvas, fontWidth, fontHeight) {
+        importImage(canvas, fontWidth, fontHeight, offsetX, offsetY) {
+            const baseChar = 0x20
             this.fontWidth = fontWidth
             this.fontHeight = fontHeight
             const ctx = canvas.getContext('2d')
             const maxWidth = canvas.width
             const cols = Math.floor(maxWidth / fontWidth)
-            const baseChar = 0x00
             const charCount = 0x80
+            this.data = new Array(256);
+            const leftTopData = ctx.getImageData(0, 0, 1, 1)
+            let baseColor = 0
+            if (leftTopData.data[3] == 255) {
+                baseColor = new Uint32Array(leftTopData.data.buffer)[0]
+            }
             for (let i = 0; i < charCount; i++) {
-                const x = i % cols * fontWidth
-                const y = Math.floor(i / cols) * fontHeight
+                const x = offsetX + (i % cols * fontWidth)
+                const y = offsetY + (Math.floor(i / cols) * fontHeight)
                 const imageData = ctx.getImageData(x, y, fontWidth, fontHeight)
+                const buffer = new Uint32Array(imageData.data.buffer)
                 let index = 0
                 let glyph = new GlyphData()
                 for (let j = 0; j < fontHeight; j++) {
                     let rawData = 0
                     for (let k = 0; k < fontWidth; k++) {
-                        if (imageData.data[index + 3] > 0) {
+                        if (buffer[index] != baseColor) {
                             rawData |= (GlyphData.BIT_LEFT >>> k)
                         }
-                        index += 4
+                        index ++
                     }
                     glyph.rawData[j] = rawData
                 }
