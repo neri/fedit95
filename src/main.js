@@ -8,6 +8,7 @@ let mainWindow;
 const createWindow = () => {
   mainWindow = new BrowserWindow(
     {
+      // titleBarStyle: 'hidden',
       width: 640, 
       height: 480,
       minWidth: 640,
