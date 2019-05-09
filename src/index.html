@@ -13,54 +13,61 @@
         
         <header>
             <nav>
+                :: Font Edit ::
                 <a id="saveLoadButton" class="button">Save / Load</a>
                 <a id="exportMenuButton" class="button">Export</a>
             </nav>
         </header>
         
         <aside id="leftTool">
-            <div id="glyphSelector">
-                <fieldset>
-                    <legend>Glyph Selector</legend>
+            <ul>
+                <li>
                     <label>Char: <input id="glyphChar" type="text" size="2" placeholder="X"></label>
-                    <br>
-                    <label>Code: <input id="glyphCode" type="text" maxlength="2" size="4" placeholder="00"></label>
-                    <br>
+                </li>
+                <li>
+                </li>
+                <li>
                     <a id="glyphLt" class="button">&lt;</a>
+                    <input id="glyphCode" type="text" maxlength="2" size="4" placeholder="00">
                     <a id="glyphGt" class="button">&gt;</a>
-                </fieldset>
-            </div>
-            
-            <div id="general">
-                <fieldset>
-                    <legend>Font Info</legend>
+                </li>
+            </ul>
+            <hr>
+            <ul>
+                <li>
                     <label>FONTX Name: <input id="fontName" type="text" maxlength="8" placeholder="FONTNAME" style="width: 8em;"></label>
-                    <br>
+                </li>
+                <li>
                     <label>Width: <input id="fontWidth" type="number" min="1" value="8" style="width: 3em;"></label>
-                    <br>
+                </li>
+                <li>
                     <label>Height: <input id="fontHeight" type="number" min="1" value="16" style="width: 3em;"></label>
-                </fieldset>
-            </div>
+                </li>
+            </ul>
         </aside>
         
         <aside id="rightTool">
-            <fieldset>
-                <legend>Edit Tool</legend>
-                <a id="applyButton" class="buttonActive">Apply</a>
-                <br>
-                <a id="clearButton" class="buttonDestructive">Clear</a>
-                <br>
-                <a id="reverseButton" class="button">Reverse B/W</a>
-                <br>
-                <table id="arrows">
-                    <tr><td></td><td><a id="shiftUButton" class="button">&#x2191;</a></td></tr>
-                    <tr>
-                        <td><a id="shiftLButton" class="button">&#x2190;</a></td>
-                        <td><a id="shiftDButton" class="button">&#x2193;</a></td>
-                        <td><a id="shiftRButton" class="button">&#x2192;</a></td>
-                    </tr>
-                </table>
-            </fieldset>
+            <a id="applyButton" class="buttonActive">Apply</a>
+            <br>
+            <a id="reverseButton" class="button">Reverse B/W</a>
+            <br>
+            <table id="arrows">
+                <tr><td></td><td><a id="shiftUButton" class="button">&#x2191;</a></td></tr>
+                <tr>
+                    <td><a id="shiftLButton" class="button">&#x2190;</a></td>
+                    <td><a id="shiftDButton" class="button">&#x2193;</a></td>
+                    <td><a id="shiftRButton" class="button">&#x2192;</a></td>
+                </tr>
+            </table>
+            <form id="penToolGroup">
+                <fieldset>
+                    <legend>Pen</legend>
+                    <label><input type="radio" name="pen" value="-1" checked="checked">Auto</label>
+                    <label><input type="radio" name="pen" value="1">B</label>
+                    <label><input type="radio" name="pen" value="0">W</label>
+                </fieldset>
+            </form>
+            <a id="clearButton" class="buttonDestructive">Clear</a>
         </aside>
         
         <div id="editor">
@@ -91,7 +98,7 @@
             <h2>&#x1F5A8; Export...</h2>
             <a id="exportFontXButton" class="button">Export as FONTX2</a>
             <br>
-            <a id="exportImageButton" class="button">Export as Image</a>
+            <a id="exportImageButton" class="button">Export Image</a>
             <br>
         </div>
     </div>
@@ -117,26 +124,26 @@
             <img id="exportImageMain">
         </div>
     </div>
-
+    
     <div id="importImageDialog" class="dialog">
-            <div class="dialogInner">
-                <a id="closeImportImageDialogButton" class="buttonDestructive closeButton">&#x2715;</a>
-                <h2>&#x1F4F7; Import from Image</h2>
-                <a id="importImageButton" class="buttonActive">Import</a>
-                <label>Width: <input id="importImageWidth" type="number" min="1" style="width: 3em;" value="8"></label>
-                <label>Height: <input id="importImageHeight" type="number" min="1" style="width: 3em;" value="16"></label>
-                <br>
-                <label>Offset X: <input id="importImageOffsetX" type="number" min="0" style="width: 3em;"></label>
-                <label>Offset Y: <input id="importImageOffsetY" type="number" min="0" style="width: 3em;"></label>
-                <br>
-                <label>
-                    Preview:
-                    <canvas id="importPreviewCanvas"></canvas>
-                </label>
-                <br>
-                <canvas id="importImageCanvas"></canvas>
-            </div>
+        <div class="dialogInner">
+            <a id="closeImportImageDialogButton" class="buttonDestructive closeButton">&#x2715;</a>
+            <h2>&#x1F4F7; Import from Image</h2>
+            <a id="importImageButton" class="buttonActive">Import</a>
+            <label>Width: <input id="importImageWidth" type="number" min="1" style="width: 3em;" value="8"></label>
+            <label>Height: <input id="importImageHeight" type="number" min="1" style="width: 3em;" value="16"></label>
+            <br>
+            <label>Offset X: <input id="importImageOffsetX" type="number" min="0" style="width: 3em;"></label>
+            <label>Offset Y: <input id="importImageOffsetY" type="number" min="0" style="width: 3em;"></label>
+            <br>
+            <label>
+                Preview:
+                <canvas id="importPreviewCanvas"></canvas>
+            </label>
+            <br>
+            <canvas id="importImageCanvas"></canvas>
         </div>
-        
+    </div>
+    
 </body>
 </html>

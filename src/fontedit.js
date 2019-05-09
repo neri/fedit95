@@ -88,7 +88,6 @@ class FontEdit {
         $('#saveLoadButton').addEventListener('click', () => {
             $('#base64Console').value = this.fontData.export();
             this.showDialog($('#saveLoadDialog'));
-            $('#base64Console').select();
         })
         
         $('#closeSaveLoadDialogButton').addEventListener('click', () => {
@@ -151,22 +150,29 @@ class FontEdit {
             reader.readAsBinaryString(e.target.files[0]);
         }, false);
         
+        const base64_to_buffer = (base64) => {
+            const str = atob(base64)
+            const array = new ArrayBuffer(str.length)
+            const u8v = new Uint8Array(array)
+            for (let i = 0; i < str.length; i++) {
+                u8v[i] = str.charCodeAt(i)
+            }
+            return u8v
+        }
+
         $('#exportFontXButton').addEventListener('click', () => {
-            const url = 'data:;base64,' + this.fontData.exportFontX2()
+            const blob = new Blob([base64_to_buffer(this.fontData.exportFontX2())], {type: 'application/octet-stream'})
+            const url = URL.createObjectURL(blob)
             const tag = document.createElement('a')
             tag.href = url
             tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.fnt'
             tag.click()
+            console.log(tag)
         })
 
         $('#exportImageButton').addEventListener('click', () => {
             const canvas = document.createElement('canvas')
             this.fontData.exportImage(canvas, 16)
-            // const tag = document.createElement('a')
-            // tag.href = canvas.toDataURL('image/png')
-            // tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.png'
-            // tag.click()
-
             this.closeDialog($('#exportMenu'))
             this.showDialog($('#exportImageDialog'))
             const img = $('#exportImageMain')
@@ -200,7 +206,12 @@ class FontEdit {
             this.closeDialog($('#importImageDialog'))
         }, false)
 
-    }
+        document.querySelectorAll('#penToolGroup input[type=radio]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                this.mainCanvas.penStyle = parseInt($('#penToolGroup').pen.value)
+            })
+        });
+   }
     
     dimWindow (x = 1) {
         this.mainBgDimming += x;
@@ -354,14 +365,15 @@ class FontEdit {
 
 class GlyphEditor {
     constructor(selector) {
-        this.canvas = $(selector);
-        this.margin = 8;
-        this.glyph = new GlyphData();
+        this.canvas = $(selector)
+        this.margin = 8
+        this.glyph = new GlyphData()
+        this.penStyle = -1
         
         this.canvas.addEventListener('mousedown', (e) => {
             this.mouseDown = true;
             const { ex, ey } = this.convertMouseEvent(e);
-            this.currentColor = !this.getPixel(ex, ey);
+            this.currentColor = this.penStyle < 0 ? !this.getPixel(ex, ey) : this.penStyle
             this.setPixel(ex, ey, this.currentColor);
             e.preventDefault();
             e.stopPropagation();
@@ -384,7 +396,7 @@ class GlyphEditor {
         
         this.canvas.addEventListener('touchstart', (e) => {
             const { ex, ey } = this.convertTouchEvent(e);
-            this.currentColor = !this.getPixel(ex, ey);
+            this.currentColor = this.penStyle < 0 ? !this.getPixel(ex, ey) : this.penStyle
             this.setPixel(ex, ey, this.currentColor);
             e.preventDefault();
         }, false);
