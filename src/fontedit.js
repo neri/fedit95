@@ -167,7 +167,6 @@ class FontEdit {
             tag.href = url
             tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.fnt'
             tag.click()
-            console.log(tag)
         })
 
         $('#exportImageButton').addEventListener('click', () => {
@@ -423,7 +422,6 @@ class GlyphEditor {
         const t = e.touches[0];
         const ex = (((t.clientX - tr.left - this.margin)) / this.scale) | 0;
         const ey = (((t.clientY - tr.top - this.margin)) / this.scale) | 0;
-        console.log(e.touches, t, ex, ey);
         return {ex, ey};
     }
     resize(width, height) {
