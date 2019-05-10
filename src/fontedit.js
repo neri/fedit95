@@ -231,14 +231,13 @@ class FontEdit {
     }
     
     resizeDOM () {
-        const fontWidth = parseInt($('#fontWidth').value) | 0;
-        const fontHeight = parseInt($('#fontHeight').value) | 0;
-        if (fontWidth == 0 || fontHeight == 0) return;
-        if (!this.mainCanvas.resize(fontWidth, fontHeight)) {
-            this.fontData.fontWidth = this.mainCanvas.width
-            this.fontData.fontHeight = this.mainCanvas.height
-            $('#fontWidth').value = this.mainCanvas.width
-            $('#fontHeight').value = this.mainCanvas.height
+        const fontWidth = parseInt($('#fontWidth').value)
+        const fontHeight = parseInt($('#fontHeight').value)
+        if (!fontWidth || !fontHeight) return;
+        if (this.mainCanvas.resize(fontWidth, fontHeight)) {
+            this.fontData.resize(fontWidth, fontHeight)
+            $('#fontWidth').value = fontWidth
+            $('#fontHeight').value = fontHeight
         }
     }
     
@@ -585,6 +584,10 @@ class FontData {
     }
     setGlyph(code, glyph) {
         this.data[code] = glyph.clone();
+    }
+    resize(fontWidth, fontHeight) {
+        this.fontWidth = fontWidth
+        this.fontHeight = fontHeight
     }
     drawChar(code, ctx, x, y, color = 0x000000) {
         const glyph = this.getGlyph(code)
