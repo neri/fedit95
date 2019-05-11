@@ -10,7 +10,7 @@ const $ = x => document.querySelector(x);
 let app;
 
 document.addEventListener('DOMContentLoaded', () => {
-    app = new FontEdit();    
+    app = new FontEdit();
 });
 
 
@@ -24,7 +24,7 @@ class FontEdit {
         this.currentEditCode = 0x41;
         this.fontData = new FontData();
         this.mainCanvas = new GlyphEditor('#mainCanvas');
-        this.mainBgDimming = 0;
+        this.bgDimmingCount = 0;
         
         $('#previewText').value = localStorage.getItem(FontEdit.LS_PREVIEW_KEY) ||
         "The quick brown fox jumps over the lazy dog.\nETAOIN SHRDLU CMFWYP VBGKQJ XZ 1234567890";
@@ -75,7 +75,7 @@ class FontEdit {
         
         $('#importButton').addEventListener('click', () => {
             if (this.loadData($('#base64Console').value)) {
-                this.closeDialog($('#saveLoadDialog'));
+                new SaveLoadDialog().dismiss()
             }
         });
         
@@ -87,20 +87,11 @@ class FontEdit {
         
         $('#saveLoadButton').addEventListener('click', () => {
             $('#base64Console').value = this.fontData.export();
-            this.showDialog($('#saveLoadDialog'));
+            new SaveLoadDialog().show()
         })
         
-        $('#closeSaveLoadDialogButton').addEventListener('click', () => {
-            this.closeDialog($('#saveLoadDialog'));
-        })
-        
-        $('#exportMenuButton').addEventListener('click', () => {
-            this.showDialog($('#exportMenu'))
-        })
-        
-        $('#closeExportMenuButton').addEventListener('click', () => {
-            this.closeDialog($('#exportMenu'))
-        })
+        $('#exportMenuButton').addEventListener('click', () => new ExportDialog().show())
+        $('#infoButton').addEventListener('click', () => new FontInfoDialog().show())
         
         $('#fontName').addEventListener('input', () => {
             this.fontData.fontName = $('#fontName').value;
@@ -144,7 +135,7 @@ class FontEdit {
             const reader = new FileReader();
             reader.addEventListener('load', (e) => {
                 if (this.loadData(e.target.result)) {
-                    this.closeDialog($('#saveLoadDialog'));
+                    new SaveLoadDialog().dismiss()
                 }
             });
             reader.readAsBinaryString(e.target.files[0]);
@@ -159,7 +150,7 @@ class FontEdit {
             }
             return u8v
         }
-
+        
         $('#exportFontXButton').addEventListener('click', () => {
             const blob = new Blob([base64_to_buffer(this.fontData.exportFontX2())], {type: 'application/octet-stream'})
             const url = URL.createObjectURL(blob)
@@ -168,31 +159,23 @@ class FontEdit {
             tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.fnt'
             tag.click()
         })
-
+        
         $('#exportImageButton').addEventListener('click', () => {
             const canvas = document.createElement('canvas')
             this.fontData.exportImage(canvas, 16)
-            this.closeDialog($('#exportMenu'))
-            this.showDialog($('#exportImageDialog'))
+            Dialog.dismissTop()
+            new ExportImageDialog().show()
             const img = $('#exportImageMain')
             img.src = canvas.toDataURL('image/png')
         })
-
+        
         $('#saveExportImageButton').addEventListener('click', () => {
             const tag = document.createElement('a')
             tag.href = $('#exportImageMain').src
             tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.png'
             tag.click()
         })
-
-        $('#closeExportImageDialogButton').addEventListener('click', () => {
-            this.closeDialog($('#exportImageDialog'))
-        })
         
-        $('#closeImportImageDialogButton').addEventListener('click', () => {
-            this.closeDialog($('#importImageDialog'))
-        }, false)
-
         $('#importImageWidth').addEventListener('input', () => this.resizeImport(), false)
         $('#importImageHeight').addEventListener('input', () => this.resizeImport(), false)
         $('#importImageOffsetX').addEventListener('input', () => this.resizeImport(), false)
@@ -200,21 +183,26 @@ class FontEdit {
         
         $('#importImageButton').addEventListener('click', () => {
             this.setFontData(this.importFont)
-            this.importFont = null
-            this.importImgCanvas = null
-            this.closeDialog($('#importImageDialog'))
+            new ImportImageDialog().dismiss()
         }, false)
-
+        
         document.querySelectorAll('#penToolGroup input[type=radio]').forEach(radio => {
             radio.addEventListener('change', () => {
                 this.mainCanvas.penStyle = parseInt($('#penToolGroup').pen.value)
             })
         });
-   }
+
+        document.querySelectorAll('.dialogCloseButton').forEach(button => {
+            button.addEventListener('click', () => {
+                Dialog.dismissTop()
+            })
+        });
+
+    }
     
     dimWindow (x = 1) {
-        this.mainBgDimming += x;
-        if (this.mainBgDimming > 0) {
+        this.bgDimmingCount += x;
+        if (this.bgDimmingCount > 0) {
             $('#mainScreen').classList.add('blur');
         } else {
             $('#mainScreen').classList.remove('blur');
@@ -240,20 +228,6 @@ class FontEdit {
         }
     }
     
-    showDialog (dialog) {
-        if (dialog.style.display === 'block') return
-        this.dimWindow(1);
-        $('#dialogBackground').style.display = 'block';
-        dialog.style.display = 'block';
-    }
-    
-    closeDialog (dialog) {
-        if (dialog.style.display === 'none') return
-        this.dimWindow(-1);
-        $('#dialogBackground').style.display = 'none';
-        dialog.style.display = 'none';
-    }
-    
     refreshPreview () {
         const str = $('#previewText').value;
         const canvas = $('#previewCanvas');
@@ -271,7 +245,7 @@ class FontEdit {
         this.refreshGlyphSelector();
         this.refreshPreview();
     }
-
+    
     loadData (blob) {
         if (blob.startsWith('\x89PNG\x0D\x0A\x1A\x0A')) {
             const img = new Image()
@@ -302,7 +276,7 @@ class FontEdit {
                 this.importImgCanvas.height = height
                 const ctx = this.importImgCanvas.getContext('2d')
                 ctx.drawImage(img, 0, 0)
-                this.showDialog($('#importImageDialog'))
+                new ImportImageDialog().show()
                 this.resizeImport()
             })
             img.src = "data:image/png;base64," + btoa(blob)
@@ -315,18 +289,18 @@ class FontEdit {
             return false;
         }
     }
-
+    
     resizeImport() {
         const fontWidth = parseInt($('#importImageWidth').value) || 0
         const fontHeight = parseInt($('#importImageHeight').value) || 0
         const offsetX = parseInt($('#importImageOffsetX').value) || 0
         const offsetY = parseInt($('#importImageOffsetY').value) || 0
         if (fontWidth == 0 || fontHeight == 0) return;
-
+        
         const canvas0 = this.importImgCanvas
         const ctx0 = canvas0.getContext('2d')
         const { width, height } = canvas0
-
+        
         const canvas1 = $('#importImageCanvas')
         canvas1.width = width + 1
         canvas1.height = height + 1
@@ -349,15 +323,103 @@ class FontEdit {
             ctx1.lineTo(offsetX + preferredWidth, offsetY + i * fontHeight)
             ctx1.stroke()
         }
-
+        
         this.importFont.importImage(canvas0, fontWidth, fontHeight, offsetX, offsetY)
-
+        
         const canvas2 = $('#importPreviewCanvas')
         canvas2.width = Math.max(256, this.importImgCanvas.width)
-        canvas2.height = fontHeight;
+        canvas2.height = fontHeight
         this.importFont.drawText('ABCD abcd 1234', canvas2)
     }
     
+}
+
+
+class Dialog {
+    constructor (selector) {
+        this.selector = selector
+        this.element = $(selector)
+    }
+
+    onclose () {}
+
+    show () {
+        Dialog.show(this)
+    }
+    dismiss () {
+        Dialog.dismiss(this)
+    }
+    static show (dialog) {
+        if (dialog.element.style.display === 'block') return;
+        app.dimWindow(1);
+
+        if (Dialog._stack.length == 0) Dialog._lastIndex = 1;
+        Dialog._stack.push(dialog)
+        dialog.element.style.zIndex = (++Dialog._lastIndex)
+        dialog.element.style.display = 'block';
+    }
+    static dismiss (dialog) {
+        Dialog._stack = Dialog._stack.filter(value => {
+            if (value.selector === dialog.selector) {
+                this.close(value)
+                return false;
+            } else {
+                return true;
+            }
+        })
+    }
+    static dismissAll () {
+        while (Dialog._stack.length > 0) {
+            this.dismissTop()
+        }
+    }
+    static dismissTop () {
+        if (Dialog._stack.length > 0) {
+            this.close(Dialog._stack.pop())
+        }
+    }
+    static close(dialog) {
+        app.dimWindow(-1);
+        dialog.element.style.display = 'none';
+        dialog.onclose()
+    }
+}
+Dialog._lastIndex = 0;
+Dialog._stack = [];
+
+
+class ExportDialog extends Dialog {
+    constructor () {
+        super('#exportMenu')
+    }
+}
+
+class SaveLoadDialog extends Dialog {
+    constructor () {
+        super('#saveLoadDialog')
+    }
+}
+
+class ExportImageDialog extends Dialog {
+    constructor () {
+        super('#exportImageDialog')
+    }
+}
+
+class ImportImageDialog extends Dialog {
+    constructor () {
+        super('#importImageDialog')
+    }
+    onclose () {
+        app.importFont = null
+        app.importImgCanvas = null
+    }
+}
+
+class FontInfoDialog extends Dialog {
+    constructor () {
+        super('#fontInfoDialog')
+    }
 }
 
 
@@ -649,9 +711,8 @@ class FontData {
         const fontWidth = blob.charCodeAt(14);
         const fontHeight = blob.charCodeAt(15);
         const type = blob.charCodeAt(16);
-        if (type != 0 ||
-            fontWidth < 1 || fontWidth > GlyphData.MAX_WIDTH ||
-            fontHeight < 1 || fontHeight > GlyphData.MAX_HEIGHT) {
+        if (type != 0 || fontWidth < 1 || fontWidth > GlyphData.MAX_WIDTH 
+            || fontHeight < 1 || fontHeight > GlyphData.MAX_HEIGHT) {
                 return false;
             }
             this.fontWidth = fontWidth;

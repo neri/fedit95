@@ -11,7 +11,7 @@ const createWindow = () => {
       // titleBarStyle: 'hidden',
       width: 640, 
       height: 480,
-      minWidth: 640,
+      minWidth: 480,
       maxWidth: 640,
       minHeight: 480
     });

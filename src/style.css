@@ -16,8 +16,15 @@ header {
     -webkit-app-region: drag;
 }
 
-#mainScreen {
-    width: 620px;
+@media screen and (max-width:639px) {
+    #mainScreen {
+        width: 460px;
+    }
+}
+@media screen and (min-width:640px) {
+    #mainScreen {
+        width: 620px;
+    }
 }
 
 fieldset {
@@ -29,11 +36,14 @@ fieldset {
     margin: 4px 2px;
     padding: 1px 6px;
     border-radius: 2px;
-    border: rgba(0, 0, 0, 0.25) solid 1px;
     font-weight: bold;
     font-size: 10pt;
     cursor: pointer;
     -webkit-app-region: no-drag;
+}
+
+.dialog .button, .dialog .buttonActive, .dialog .buttonDestructive {
+    border: rgba(0, 0, 0, 0.25) solid 1px;
 }
 
 .button:hover, .buttonActive:hover, .buttonDestructive:hover {
@@ -61,13 +71,15 @@ fieldset {
     color: #FFF;
 }
 
+input[type="text"], input[type="number"],textarea {
+    border: #CCC solid 1px;
+}
+
 input[type="text"], input[type="number"] {
-    border: #AAA solid 1px;
     font: 10pt Menlo, "DejaVu Sans Mono", Consolas, "Lucida Console", monospace;
 }
 
 textarea {
-    border: #AAA solid 1px;
     font: 9pt Menlo, "DejaVu Sans Mono", Consolas, "Lucida Console", monospace;
 }
 
@@ -89,17 +101,30 @@ li {
     list-style: none;
 }
 
-#leftTool {
-    float: left;
-    width: 160px;
+#toolBox1, #toolBox2 {
+        width: 152px;
+    padding: 0 4px;
 }
 
-#rightTool {
-    float: right;
-    width: 160px;
+@media screen and (max-width:639px) {
+    #toolBox0 {
+        float: left;
+    }
+}
+@media screen and (min-width:640px) {
+    #toolBox1 {
+        float: left;
+    }
+    #toolBox2 {
+        float: right;
+    }
 }
 
-#editor:after {
+#edit {
+    float: none;
+}
+
+#preview {
     clear: both;
 }
 
@@ -129,11 +154,11 @@ hr {
 }
 
 #previewText {
-    width: 45%;
+    width: 140px;
+    height: 96px;
 }
 
 #previewCanvas {
-    width: 50%;
     background: #FFF;
 }
 
@@ -171,6 +196,7 @@ hr {
     top: 0;
     width: 100%;
     height: 100%;
+    background: rgba(0, 0, 0, 0.25);
 }
 
 .dialogInner {
@@ -192,7 +218,7 @@ hr {
     white-space: nowrap;
 }
 
-.closeButton {
+.dialogCloseButton {
     float: right;
     position: relative;
     top: -6px;
