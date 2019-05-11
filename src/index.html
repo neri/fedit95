@@ -71,8 +71,8 @@
             <fieldset>
                 <legend>Preview</legend>
                 <label>
-                    <textarea id="previewText"></textarea>
                     <canvas id="previewCanvas" width="280"></canvas>
+                    <textarea id="previewText"></textarea>
                 </label>
             </fieldset>
         </div>
@@ -85,10 +85,10 @@
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
             <h2>&#x1F5A8; Export...</h2>
-            <a id="exportFontXButton" class="button">Export as FONTX2</a>
-            <br>
-            <a id="exportImageButton" class="button">Export Image</a>
-            <br>
+            <ul>
+                <li><a id="exportFontXButton" class="button">Export as FONTX2</a></li>
+                <li><a id="exportImageButton" class="button">Export Image</a></li>
+            </ul>
         </div>
     </div>
     
@@ -105,6 +105,16 @@
         </div>
     </div>
     
+    <div id="exportTextDialog" class="dialog">
+            <div class="dialogInner">
+                <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
+                <h2>Export</h2>
+                <a id="exportTextButton" class="buttonActive">Export</a>
+                <br>
+                <textarea id="exportTextArea" cols="40" rows="10" readonly="readonly"></textarea>
+            </div>
+        </div>
+        
     <div id="exportImageDialog" class="dialog">
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
@@ -138,10 +148,12 @@
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
             <h2>Font Info</h2>
-            <label>FONTX Name: <input id="fontName" type="text" maxlength="8" placeholder="FONTNAME" style="width: 8em;"></label>
+            <label>Name: <input id="fontName" type="text" maxlength="8" placeholder="FONTNAME" style="width: 8em;"></label>
             <br>
             <label>Width: <input id="fontWidth" type="number" min="1" value="8" style="width: 3em;"></label>
             <label>Height: <input id="fontHeight" type="number" min="1" value="16" style="width: 3em;"></label>
+            <br>
+            <label><input type="checkbox" checked="checked" disabled="disabled">ASCII Font</label>
         </div>
     </div>
     

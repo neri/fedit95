@@ -151,8 +151,10 @@ class FontEdit {
             return u8v
         }
         
-        $('#exportFontXButton').addEventListener('click', () => {
-            const blob = new Blob([base64_to_buffer(this.fontData.exportFontX2())], {type: 'application/octet-stream'})
+        $('#exportFontXButton').addEventListener('click', () => this.exportText(this.fontData.exportFontX2()));
+        
+        $('#exportTextButton').addEventListener('click', () => {
+            const blob = new Blob([base64_to_buffer($('#exportTextArea').value)], {type: 'application/octet-stream'})
             const url = URL.createObjectURL(blob)
             const tag = document.createElement('a')
             tag.href = url
@@ -191,13 +193,13 @@ class FontEdit {
                 this.mainCanvas.penStyle = parseInt($('#penToolGroup').pen.value)
             })
         });
-
+        
         document.querySelectorAll('.dialogCloseButton').forEach(button => {
             button.addEventListener('click', () => {
                 Dialog.dismissTop()
             })
         });
-
+        
     }
     
     dimWindow (x = 1) {
@@ -247,7 +249,7 @@ class FontEdit {
     }
     
     loadData (blob) {
-        if (blob.startsWith('\x89PNG\x0D\x0A\x1A\x0A')) {
+        if (blob.startsWith('\x89PNG\x0D\x0A\x1A\x0A') || blob.startsWith('\xFF\xD8')) {
             const img = new Image()
             img.addEventListener('load', () => {
                 const { width, height } = img
@@ -332,6 +334,11 @@ class FontEdit {
         this.importFont.drawText('ABCD abcd 1234', canvas2)
     }
     
+    exportText(text) {
+        $('#exportTextArea').value = text;
+        new ExportTextDialog().show()
+    }
+    
 }
 
 
@@ -340,9 +347,9 @@ class Dialog {
         this.selector = selector
         this.element = $(selector)
     }
-
+    
     onclose () {}
-
+    
     show () {
         Dialog.show(this)
     }
@@ -352,7 +359,7 @@ class Dialog {
     static show (dialog) {
         if (dialog.element.style.display === 'block') return;
         app.dimWindow(1);
-
+        
         if (Dialog._stack.length == 0) Dialog._lastIndex = 1;
         Dialog._stack.push(dialog)
         dialog.element.style.zIndex = (++Dialog._lastIndex)
@@ -397,6 +404,12 @@ class ExportDialog extends Dialog {
 class SaveLoadDialog extends Dialog {
     constructor () {
         super('#saveLoadDialog')
+    }
+}
+
+class ExportTextDialog extends Dialog {
+    constructor () {
+        super('#exportTextDialog')
     }
 }
 
@@ -577,7 +590,7 @@ class GlyphData {
         const row = this.rawData[y] || 0;
         return (row & (GlyphData.BIT_LEFT >>> x)) != 0;
     }
-    setPixel(x, y, color) {
+    setPixel(x, y, color = 1) {
         let row = this.rawData[y] || 0;
         if (color) {
             row |= (GlyphData.BIT_LEFT >>> x);
@@ -585,6 +598,9 @@ class GlyphData {
             row &= ~(GlyphData.BIT_LEFT >>> x);
         }
         this.rawData[y] = row;
+    }
+    get isWhite() {
+        return !this.rawData.reduce((a, b) => a | b);
     }
     clone() {
         return new GlyphData(this.rawData)
@@ -625,6 +641,36 @@ class GlyphData {
             }
         }
         ctx.putImageData(imageData, x, y)
+    }
+    
+    static get SERIALIZE_FONTX () { return 0; }
+    static get SERIALIZE_B64U () { return 1; }
+    
+    static deserialize(blob, width, height, type = 0) {
+        let data = new Array(height);
+        const w8 = Math.floor((width + 7) / 8);
+        for (let i = 0; i < height; i++) {
+            let rawData = 0;
+            for (let j = 0; j < w8; j++) {
+                const byte = blob.charCodeAt(i * w8 + j);
+                rawData |= (byte << (24 - j * 8));
+            }
+            data[i] = rawData;
+        }
+        return new GlyphData(data)
+    }
+    
+    serialize(width, height, type = 0) {
+        let result = [];
+        const w8 = Math.floor((width + 7) / 8);
+        for (let i = 0; i < height; i++) {
+            const rawData = this.rawData[i] || 0;
+            for (let j = 0; j < w8; j++) {
+                const byte = (rawData >>> (24 - j * 8)) & 0xFF;
+                result.push(String.fromCharCode(byte));
+            }
+        }
+        return result.join('');
     }
 }
 
@@ -691,7 +737,6 @@ class FontData {
         return (result + '        ').slice(0, 8);
     }
     import(data) {
-        // TODO: original format
         if (data.startsWith("Rk9OVFgy")) {
             // FONTX2 (base64)
             const blob = atob(data);
@@ -704,106 +749,84 @@ class FontData {
         }
     }
     export() {
-        // TODO: original format
         return this.exportFontX2();
     }
+    
     importFontX2(blob) {
         const fontWidth = blob.charCodeAt(14);
         const fontHeight = blob.charCodeAt(15);
         const type = blob.charCodeAt(16);
-        if (type != 0 || fontWidth < 1 || fontWidth > GlyphData.MAX_WIDTH 
-            || fontHeight < 1 || fontHeight > GlyphData.MAX_HEIGHT) {
-                return false;
-            }
-            this.fontWidth = fontWidth;
-            this.fontHeight = fontHeight;
-            this.fontName = blob.slice(6, 14).trim();
-            const w8 = Math.floor((fontWidth + 7) / 8);
-            const fontSize = w8 * fontHeight;
-            this.data = new Array(256);
-            for (let i = 0; i <= 255; i++) {
-                const base = 17 + fontSize * i;
-                let glyph = new GlyphData();
-                for (let j = 0; j < fontHeight; j++) {
-                    let rawData = 0;
-                    for (let k = 0; k < w8; k++) {
-                        const byte = blob.charCodeAt(base + j * w8 + k);
-                        rawData |= (byte << (24 - k * 8));
-                    }
-                    glyph.rawData[j] = rawData;
-                }
-                this.data[i] = glyph;
-            }
-            return true;
+        if (type == 0 || fontWidth > 0 || fontWidth <= GlyphData.MAX_WIDTH || fontHeight > 0 || fontHeight <= GlyphData.MAX_HEIGHT)
+        {} else return false;
+        this.fontWidth = fontWidth;
+        this.fontHeight = fontHeight;
+        this.fontName = blob.slice(6, 14).trim();
+        const w8 = Math.floor((fontWidth + 7) / 8);
+        const fontSize = w8 * fontHeight;
+        this.data = new Array(256);
+        for (let i = 0; i <= 255; i++) {
+            const base = 17 + fontSize * i;
+            this.data[i] = GlyphData.deserialize(blob.slice(base, base + fontSize), fontWidth, fontHeight);
         }
-        exportFontX2() {
-            let output = [];
-            let header = ["FONTX2"];
-            header.push(this.validateFontName());
-            const { fontWidth, fontHeight } = this;
-            header.push(String.fromCharCode(fontWidth, fontHeight, 0));
-            output.push(header.join(''));
-            const w8 = Math.floor((fontWidth + 7) / 8);
-            for (let i = 0; i < 256; i++) {
-                let rep = [];
-                const glyph = this.data[i] || new GlyphData();
-                for (let j = 0; j < fontHeight; j++) {
-                    const rawData = glyph.rawData[j] || 0;
-                    for (let k = 0; k < w8; k++) {
-                        const byte = (rawData >>> (24 - k * 8)) & 0xFF;
-                        rep.push(String.fromCharCode(byte));
-                    }
-                }
-                output.push(rep.join(''));
-            }
-            return btoa(output.join(''));
+        return true;
+    }
+    exportFontX2() {
+        let output = [];
+        let header = ["FONTX2"];
+        header.push(this.validateFontName());
+        const { fontWidth, fontHeight } = this;
+        header.push(String.fromCharCode(fontWidth, fontHeight, 0));
+        output.push(header.join(''));
+        const w8 = Math.floor((fontWidth + 7) / 8);
+        for (let i = 0; i < 256; i++) {
+            const glyph = this.data[i] || new GlyphData();
+            output.push(glyph.serialize(fontWidth, fontHeight));
         }
-        exportImage(canvas, cols) {
-            const { fontWidth, fontHeight } = this
-            const ctx = canvas.getContext('2d')
-            const baseChar = 0x20
-            const charCount = 0x80 - baseChar
-            canvas.width = fontWidth * cols
-            canvas.height = Math.floor((fontHeight * charCount + cols - 1) / cols)
-            for (let i = 0; i < charCount; i++) {
-                const x = fontWidth * (i % cols)
-                const y = fontHeight * Math.floor(i / cols)
-                this.drawChar(baseChar + i, ctx, x, y, 0)
-            }
-        }
-        importImage(canvas, fontWidth, fontHeight, offsetX, offsetY) {
-            const baseChar = 0x20
-            this.fontWidth = fontWidth
-            this.fontHeight = fontHeight
-            const ctx = canvas.getContext('2d')
-            const maxWidth = canvas.width
-            const cols = Math.floor(maxWidth / fontWidth)
-            const charCount = 0x80
-            this.data = new Array(256);
-            const leftTopData = ctx.getImageData(0, 0, 1, 1)
-            let baseColor = 0
-            if (leftTopData.data[3] == 255) {
-                baseColor = new Uint32Array(leftTopData.data.buffer)[0]
-            }
-            for (let i = 0; i < charCount; i++) {
-                const x = offsetX + (i % cols * fontWidth)
-                const y = offsetY + (Math.floor(i / cols) * fontHeight)
-                const imageData = ctx.getImageData(x, y, fontWidth, fontHeight)
-                const buffer = new Uint32Array(imageData.data.buffer)
-                let index = 0
-                let glyph = new GlyphData()
-                for (let j = 0; j < fontHeight; j++) {
-                    let rawData = 0
-                    for (let k = 0; k < fontWidth; k++) {
-                        if (buffer[index] != baseColor) {
-                            rawData |= (GlyphData.BIT_LEFT >>> k)
-                        }
-                        index ++
-                    }
-                    glyph.rawData[j] = rawData
-                }
-                this.data[baseChar + i] = glyph
-            }
-        }
+        return btoa(output.join(''));
     }
     
+    exportImage(canvas, cols) {
+        const { fontWidth, fontHeight } = this
+        const ctx = canvas.getContext('2d')
+        const baseChar = 0x20
+        const charCount = 0x80 - baseChar
+        canvas.width = fontWidth * cols
+        canvas.height = Math.floor((fontHeight * charCount + cols - 1) / cols)
+        for (let i = 0; i < charCount; i++) {
+            const x = fontWidth * (i % cols)
+            const y = fontHeight * Math.floor(i / cols)
+            this.drawChar(baseChar + i, ctx, x, y, 0)
+        }
+    }
+    importImage(canvas, fontWidth, fontHeight, offsetX, offsetY) {
+        const baseChar = 0x20
+        this.fontWidth = fontWidth
+        this.fontHeight = fontHeight
+        const ctx = canvas.getContext('2d')
+        const maxWidth = canvas.width
+        const cols = Math.floor(maxWidth / fontWidth)
+        const charCount = 0x80
+        this.data = new Array(256);
+        const leftTopData = ctx.getImageData(0, 0, 1, 1)
+        let baseColor = 0
+        if (leftTopData.data[3] == 255) {
+            baseColor = new Uint32Array(leftTopData.data.buffer)[0]
+        }
+        for (let i = 0; i < charCount; i++) {
+            const x = offsetX + (i % cols * fontWidth)
+            const y = offsetY + (Math.floor(i / cols) * fontHeight)
+            const imageData = ctx.getImageData(x, y, fontWidth, fontHeight)
+            const buffer = new Uint32Array(imageData.data.buffer)
+            let index = 0
+            let glyph = new GlyphData()
+            for (let j = 0; j < fontHeight; j++) {
+                for (let k = 0; k < fontWidth; k++) {
+                    if (buffer[index++] != baseColor) {
+                        glyph.setPixel(k, j)
+                    }
+                }
+            }
+            this.data[baseChar + i] = glyph
+        }
+    }
+}

@@ -10,8 +10,9 @@ Bitmap Font Editor
 
 ## Supported Format
 
-- FONTX2 (binary) - import only
-- FONTX2 (base64) - save / load
+- FONTX2 (base64) - currently standard format
+- FONTX2 (binary) - import / export
+- PNG - import / export
 - (Original format) - coming soon?
 
 ## License
