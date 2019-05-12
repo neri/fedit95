@@ -557,19 +557,19 @@ class GlyphEditor {
         this.redraw();
     }
     shiftL() {
-        this.glyph.shiftL();
+        this.glyph.shiftL(this.width);
         this.redraw();
     }
     shiftR() {
-        this.glyph.shiftR();
+        this.glyph.shiftR(this.width);
         this.redraw();
     }
     shiftU() {
-        this.glyph.shiftU();
+        this.glyph.shiftU(this.height);
         this.redraw();
     }
     shiftD() {
-        this.glyph.shiftD();
+        this.glyph.shiftD(this.height);
         this.redraw();
     }
     loadGlyph(glyph) {
@@ -583,15 +583,20 @@ class GlyphData {
     static get MAX_WIDTH() { return 32 }
     static get MAX_HEIGHT() { return 32 }
     static get BIT_LEFT() { return 0x80000000 }
-    constructor(rawData = []) {
-        this.rawData = [].concat(rawData);
+
+    constructor(rawData = null) {
+        if (rawData) {
+            this.rawData = new Uint32Array(rawData);
+        } else {
+            this.rawData = new Uint32Array(GlyphData.MAX_HEIGHT);
+        }
     }
     getPixel(x, y) {
-        const row = this.rawData[y] || 0;
+        const row = this.rawData[y] | 0;
         return (row & (GlyphData.BIT_LEFT >>> x)) != 0;
     }
     setPixel(x, y, color = 1) {
-        let row = this.rawData[y] || 0;
+        let row = this.rawData[y] | 0;
         if (color) {
             row |= (GlyphData.BIT_LEFT >>> x);
         } else {
@@ -608,17 +613,21 @@ class GlyphData {
     reverse() {
         this.rawData = this.rawData.map(value => ~value);
     }
-    shiftL() {
+    shiftL(width = GlyphData.MAX_WIDTH) {
         this.rawData = this.rawData.map(value => value << 1);
     }
-    shiftR() {
+    shiftR(width = GlyphData.MAX_WIDTH) {
         this.rawData = this.rawData.map(value => value >>> 1);
     }
-    shiftU() {
-        this.rawData.shift();
+    shiftU(height = GlyphData.MAX_HEIGHT) {
+        const data = this.rawData[0];
+        this.rawData.copyWithin(0, 1, height);
+        this.rawData[height - 1] = data;
     }
-    shiftD() {
-        this.rawData.unshift(0);
+    shiftD(height = GlyphData.MAX_HEIGHT) {
+        const data = this.rawData[height - 1];
+        this.rawData.copyWithin(1, 0, height);
+        this.rawData[0] = data;
     }
     draw(ctx, x, y, width, height, color = 0x000000) {
         let imageData = ctx.getImageData(x, y, width, height)
@@ -647,7 +656,7 @@ class GlyphData {
     static get SERIALIZE_B64U () { return 1; }
     
     static deserialize(blob, width, height, type = 0) {
-        let data = new Array(height);
+        let data = new Uint32Array(GlyphData.MAX_HEIGHT);
         const w8 = Math.floor((width + 7) / 8);
         for (let i = 0; i < height; i++) {
             let rawData = 0;
@@ -736,6 +745,7 @@ class FontData {
         }, '');
         return (result + '        ').slice(0, 8);
     }
+
     import(data) {
         if (data.startsWith("Rk9OVFgy")) {
             // FONTX2 (base64)
@@ -799,34 +809,41 @@ class FontData {
         }
     }
     importImage(canvas, fontWidth, fontHeight, offsetX, offsetY) {
-        const baseChar = 0x20
-        this.fontWidth = fontWidth
-        this.fontHeight = fontHeight
-        const ctx = canvas.getContext('2d')
-        const maxWidth = canvas.width
-        const cols = Math.floor(maxWidth / fontWidth)
-        const charCount = 0x80
+        const baseChar = 0x20;
+        this.fontWidth = fontWidth;
+        this.fontHeight = fontHeight;
+        const ctx = canvas.getContext('2d');
+        const maxWidth = canvas.width;
+        const cols = Math.floor(maxWidth / fontWidth);
+        const charCount = 0x80;
         this.data = new Array(256);
-        const leftTopData = ctx.getImageData(0, 0, 1, 1)
-        let baseColor = 0
-        if (leftTopData.data[3] == 255) {
-            baseColor = new Uint32Array(leftTopData.data.buffer)[0]
-        }
+        const leftTopPixel = ctx.getImageData(0, 0, 1, 1);
+        const isOpacity = (leftTopPixel.data[3] == 255);
         for (let i = 0; i < charCount; i++) {
-            const x = offsetX + (i % cols * fontWidth)
-            const y = offsetY + (Math.floor(i / cols) * fontHeight)
-            const imageData = ctx.getImageData(x, y, fontWidth, fontHeight)
-            const buffer = new Uint32Array(imageData.data.buffer)
-            let index = 0
-            let glyph = new GlyphData()
+            const x = offsetX + (i % cols * fontWidth);
+            const y = offsetY + (Math.floor(i / cols) * fontHeight);
+            const imageData = ctx.getImageData(x, y, fontWidth, fontHeight);
+            let index = 0;
+            let glyph = new GlyphData();
             for (let j = 0; j < fontHeight; j++) {
                 for (let k = 0; k < fontWidth; k++) {
-                    if (buffer[index++] != baseColor) {
-                        glyph.setPixel(k, j)
+                    let color;
+                    if (isOpacity) {
+                        let colors = 0;
+                        for (let l = 0; l < 3; l++) {
+                            colors += Math.abs(imageData.data[index + l] - leftTopPixel.data[l])
+                        }
+                        color = colors / (3 * 255.0);
+                    } else {
+                        color = imageData.data[index + 3] / 255.0;
                     }
+                    if (color > 0.5) {
+                        glyph.setPixel(k, j);
+                    }
+                    index += 4;
                 }
             }
-            this.data[baseChar + i] = glyph
+            this.data[baseChar + i] = glyph;
         }
     }
 }
