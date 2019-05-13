@@ -22,12 +22,16 @@ class FontEdit {
     
     constructor() {
         this.currentEditCode = 0x41;
-        this.fontData = new FontData();
+        this.fontDriver = new FontDriver();
         this.mainCanvas = new GlyphEditor('#mainCanvas');
         this.bgDimmingCount = 0;
         
         $('#previewText').value = localStorage.getItem(FontEdit.LS_PREVIEW_KEY) ||
-        "The quick brown fox jumps over the lazy dog.\nETAOIN SHRDLU CMFWYP VBGKQJ XZ 1234567890";
+        [
+            "The quick brown fox jumps over the lazy dog.",
+            "ETAOIN SHRDLU CMFWYP VBGKQJ XZ 1234567890",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        ].join('\n');
         this.loadData(localStorage.getItem(FontEdit.LS_WORKSPACE_KEY) || "Rk9OVFgyICAgICAgICAIEAA=");
         
         $('#fontWidth').addEventListener('input', () => this.resizeDOM());
@@ -68,9 +72,9 @@ class FontEdit {
         $('#shiftDButton').addEventListener('click', () => this.mainCanvas.shiftD());
         
         $('#applyButton').addEventListener('click', () => {
-            this.fontData.setGlyph(this.currentEditCode, this.mainCanvas.glyph);
+            this.fontDriver.setGlyph(this.currentEditCode, this.mainCanvas.glyph);
             this.refreshPreview();
-            localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontData.export());
+            localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontDriver.export());
         });
         
         $('#importButton').addEventListener('click', () => {
@@ -86,7 +90,7 @@ class FontEdit {
         })
         
         $('#saveLoadButton').addEventListener('click', () => {
-            $('#base64Console').value = this.fontData.export();
+            $('#base64Console').value = this.fontDriver.export();
             new SaveLoadDialog().show()
         })
         
@@ -94,7 +98,7 @@ class FontEdit {
         $('#infoButton').addEventListener('click', () => new FontInfoDialog().show())
         
         $('#fontName').addEventListener('input', () => {
-            this.fontData.fontName = $('#fontName').value;
+            this.fontDriver.fontName = $('#fontName').value;
         })
         
         $('html').addEventListener('dragover', (e) => {
@@ -151,20 +155,20 @@ class FontEdit {
             return u8v
         }
         
-        $('#exportFontXButton').addEventListener('click', () => this.exportText(this.fontData.exportFontX2()));
+        $('#exportFontXButton').addEventListener('click', () => this.exportText(this.fontDriver.exportAs('FONTX2')));
         
         $('#exportTextButton').addEventListener('click', () => {
             const blob = new Blob([base64_to_buffer($('#exportTextArea').value)], {type: 'application/octet-stream'})
             const url = URL.createObjectURL(blob)
             const tag = document.createElement('a')
             tag.href = url
-            tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.fnt'
+            tag.download = (this.fontDriver.fontName || 'font').toLowerCase() + '.fnt'
             tag.click()
         })
         
         $('#exportImageButton').addEventListener('click', () => {
             const canvas = document.createElement('canvas')
-            this.fontData.exportImage(canvas, 16)
+            this.fontDriver.exportImage(canvas, 16)
             Dialog.dismissTop()
             new ExportImageDialog().show()
             const img = $('#exportImageMain')
@@ -174,7 +178,7 @@ class FontEdit {
         $('#saveExportImageButton').addEventListener('click', () => {
             const tag = document.createElement('a')
             tag.href = $('#exportImageMain').src
-            tag.download = (this.fontData.fontName || 'font').toLowerCase() + '.png'
+            tag.download = (this.fontDriver.fontName || 'font').toLowerCase() + '.png'
             tag.click()
         })
         
@@ -184,7 +188,7 @@ class FontEdit {
         $('#importImageOffsetY').addEventListener('input', () => this.resizeImport(), false)
         
         $('#importImageButton').addEventListener('click', () => {
-            this.setFontData(this.importFont)
+            this.setFontDriver(this.importFont)
             new ImportImageDialog().dismiss()
         }, false)
         
@@ -216,7 +220,7 @@ class FontEdit {
         $('#glyphCode').value = this.currentEditCode.toString(16);
         let c = String.fromCharCode(this.currentEditCode);
         $('#glyphChar').value = c;
-        this.mainCanvas.loadGlyph(this.fontData.getGlyph(this.currentEditCode));
+        this.mainCanvas.loadGlyph(this.fontDriver.getGlyph(this.currentEditCode));
     }
     
     resizeDOM () {
@@ -224,7 +228,7 @@ class FontEdit {
         const fontHeight = parseInt($('#fontHeight').value)
         if (!fontWidth || !fontHeight) return;
         if (this.mainCanvas.resize(fontWidth, fontHeight)) {
-            this.fontData.resize(fontWidth, fontHeight)
+            this.fontDriver.resize(fontWidth, fontHeight)
             $('#fontWidth').value = fontWidth
             $('#fontHeight').value = fontHeight
         }
@@ -234,16 +238,16 @@ class FontEdit {
         const str = $('#previewText').value;
         const canvas = $('#previewCanvas');
         canvas.setAttribute('height', $('#previewText').clientHeight);
-        this.fontData.drawText(str, canvas)
+        this.fontDriver.drawText(str, canvas)
     }
     
-    setFontData(fontData) {
-        this.fontData = fontData
-        localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontData.export());
-        this.mainCanvas.resize(this.fontData.fontWidth, this.fontData.fontHeight);
-        $('#fontName').value = this.fontData.fontName;
-        $('#fontWidth').value = this.fontData.fontWidth;
-        $('#fontHeight').value = this.fontData.fontHeight;
+    setFontDriver(fontDriver) {
+        this.fontDriver = fontDriver
+        localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontDriver.export());
+        this.mainCanvas.resize(this.fontDriver.fontWidth, this.fontDriver.fontHeight);
+        $('#fontName').value = this.fontDriver.fontName;
+        $('#fontWidth').value = this.fontDriver.fontWidth;
+        $('#fontHeight').value = this.fontDriver.fontHeight;
         this.refreshGlyphSelector();
         this.refreshPreview();
     }
@@ -272,7 +276,7 @@ class FontEdit {
                 $('#importImageHeight').value = fontHeight
                 $('#importImageOffsetX').value = offsetX
                 $('#importImageOffsetY').value = offsetY
-                this.importFont = new FontData()
+                this.importFont = new FontDriver()
                 this.importImgCanvas = document.createElement('canvas')
                 this.importImgCanvas.width = width
                 this.importImgCanvas.height = height
@@ -283,8 +287,8 @@ class FontEdit {
             })
             img.src = "data:image/png;base64," + btoa(blob)
             return true;
-        } else if (this.fontData.import(blob)) {
-            this.setFontData(this.fontData)
+        } else if (this.fontDriver.import(blob)) {
+            this.setFontDriver(this.fontDriver)
             return true;
         } else {
             alert('ERROR: Cannot import data');
@@ -583,7 +587,7 @@ class GlyphData {
     static get MAX_WIDTH() { return 32 }
     static get MAX_HEIGHT() { return 32 }
     static get BIT_LEFT() { return 0x80000000 }
-
+    
     constructor(rawData = null) {
         if (rawData) {
             this.rawData = new Uint32Array(rawData);
@@ -654,7 +658,6 @@ class GlyphData {
     
     static get SERIALIZE_FONTX () { return 0; }
     static get SERIALIZE_B64U () { return 1; }
-    
     static deserialize(blob, width, height, type = 0) {
         let data = new Uint32Array(GlyphData.MAX_HEIGHT);
         const w8 = Math.floor((width + 7) / 8);
@@ -668,7 +671,6 @@ class GlyphData {
         }
         return new GlyphData(data)
     }
-    
     serialize(width, height, type = 0) {
         let result = [];
         const w8 = Math.floor((width + 7) / 8);
@@ -684,16 +686,64 @@ class GlyphData {
 }
 
 
-class FontData {
+class FontDriver {
     static get BASE64URL_TABLE() {
         return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     }
     constructor() {
-        this.data = [];
-        this.fontWidth = 8;
-        this.fontHeight = 16;
-        this.fontName = "";
+        this.beginImport(8, 16);
     }
+    beginImport(fontWidth, fontHeight, fontName = null, type = 0) {
+        this.fontWidth = fontWidth;
+        this.fontHeight = fontHeight;
+        this.fontName = this.validateFontName(fontName).trim();
+        this.data = new Array(256);
+    }
+    validateFontName(fontName = this.fontName) {
+        let result = (fontName || '').trim().split('').reduce((a, v) => {
+            if (FontDriver.BASE64URL_TABLE.indexOf(v) >= 0) {
+                return a + v;
+            } else {
+                return a + '_';
+            }
+        }, '');
+        return (result + '        ').slice(0, 8);
+    }
+    
+    static get driverList() {
+        if (!FontDriver._driverList) {
+            FontDriver._driverList = {};
+        }
+        return FontDriver._driverList;
+    }
+    static registerDriver(driverName, classDef) {
+        FontDriver.driverList[driverName] = classDef;
+    }
+    static deserialize(data) {
+        const result = new FontDriver();
+        if (result.import(data)){
+            return result;
+        } else {
+            return null;
+        }
+    }
+    import(data) {
+        for (const name in FontDriver.driverList) {
+            const driver = FontDriver.driverList[name];
+            if (driver.import.call(this, data)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    export() {
+        const name = Object.keys(FontDriver.driverList)[0]
+        return this.exportAs(name);
+    }
+    exportAs(provider) {
+        return FontDriver.driverList[provider].export.call(this);
+    }
+    
     getGlyph(code) {
         return this.data[code] || new GlyphData();
     }
@@ -735,88 +785,26 @@ class FontData {
         }
     }
     
-    validateFontName(fontName = this.fontName) {
-        let result = fontName.trim().split('').reduce((a, v) => {
-            if (FontData.BASE64URL_TABLE.indexOf(v) >= 0) {
-                return a + v;
-            } else {
-                return a + '_';
-            }
-        }, '');
-        return (result + '        ').slice(0, 8);
-    }
-
-    import(data) {
-        if (data.startsWith("Rk9OVFgy")) {
-            // FONTX2 (base64)
-            const blob = atob(data);
-            return this.importFontX2(blob);
-        } else if (data.startsWith('FONTX2')) {
-            // FONTX2 (blob)
-            return this.importFontX2(data);
-        } else {
-            return false;
-        }
-    }
-    export() {
-        return this.exportFontX2();
-    }
-    
-    importFontX2(blob) {
-        const fontWidth = blob.charCodeAt(14);
-        const fontHeight = blob.charCodeAt(15);
-        const type = blob.charCodeAt(16);
-        if (type == 0 || fontWidth > 0 || fontWidth <= GlyphData.MAX_WIDTH || fontHeight > 0 || fontHeight <= GlyphData.MAX_HEIGHT)
-        {} else return false;
-        this.fontWidth = fontWidth;
-        this.fontHeight = fontHeight;
-        this.fontName = blob.slice(6, 14).trim();
-        const w8 = Math.floor((fontWidth + 7) / 8);
-        const fontSize = w8 * fontHeight;
-        this.data = new Array(256);
-        for (let i = 0; i <= 255; i++) {
-            const base = 17 + fontSize * i;
-            this.data[i] = GlyphData.deserialize(blob.slice(base, base + fontSize), fontWidth, fontHeight);
-        }
-        return true;
-    }
-    exportFontX2() {
-        let output = [];
-        let header = ["FONTX2"];
-        header.push(this.validateFontName());
-        const { fontWidth, fontHeight } = this;
-        header.push(String.fromCharCode(fontWidth, fontHeight, 0));
-        output.push(header.join(''));
-        const w8 = Math.floor((fontWidth + 7) / 8);
-        for (let i = 0; i < 256; i++) {
-            const glyph = this.data[i] || new GlyphData();
-            output.push(glyph.serialize(fontWidth, fontHeight));
-        }
-        return btoa(output.join(''));
-    }
-    
     exportImage(canvas, cols) {
-        const { fontWidth, fontHeight } = this
-        const ctx = canvas.getContext('2d')
-        const baseChar = 0x20
-        const charCount = 0x80 - baseChar
-        canvas.width = fontWidth * cols
-        canvas.height = Math.floor((fontHeight * charCount + cols - 1) / cols)
+        const { fontWidth, fontHeight } = this;
+        const ctx = canvas.getContext('2d');
+        const baseChar = 0x20;
+        const charCount = 0x80 - baseChar;
+        canvas.width = fontWidth * cols;
+        canvas.height = Math.floor((fontHeight * charCount + cols - 1) / cols);
         for (let i = 0; i < charCount; i++) {
-            const x = fontWidth * (i % cols)
-            const y = fontHeight * Math.floor(i / cols)
-            this.drawChar(baseChar + i, ctx, x, y, 0)
+            const x = fontWidth * (i % cols);
+            const y = fontHeight * Math.floor(i / cols);
+            this.drawChar(baseChar + i, ctx, x, y, 0);
         }
     }
     importImage(canvas, fontWidth, fontHeight, offsetX, offsetY) {
+        this.beginImport(fontWidth, fontHeight);
         const baseChar = 0x20;
-        this.fontWidth = fontWidth;
-        this.fontHeight = fontHeight;
+        const charCount = 0x80 - baseChar;
         const ctx = canvas.getContext('2d');
         const maxWidth = canvas.width;
         const cols = Math.floor(maxWidth / fontWidth);
-        const charCount = 0x80;
-        this.data = new Array(256);
         const leftTopPixel = ctx.getImageData(0, 0, 1, 1);
         const isOpacity = (leftTopPixel.data[3] == 255);
         for (let i = 0; i < charCount; i++) {
@@ -846,4 +834,46 @@ class FontData {
             this.data[baseChar + i] = glyph;
         }
     }
+    
 }
+
+
+(function(){
+    FontDriver.registerDriver('FONTX2', { 
+        import: function(blob) {
+            if (blob.startsWith('Rk9OVFgy')) {
+                blob = atob(blob);
+            } else if (!blob.startsWith('FONTX2')) {
+                return false;
+            }
+            const fontName = blob.slice(6, 14);
+            const fontWidth = blob.charCodeAt(14);
+            const fontHeight = blob.charCodeAt(15);
+            const type = blob.charCodeAt(16);
+            if (type == 0 || fontWidth > 0 || fontWidth <= GlyphData.MAX_WIDTH || fontHeight > 0 || fontHeight <= GlyphData.MAX_HEIGHT)
+            {} else return false;
+            this.beginImport(fontWidth, fontHeight, fontName);
+            const w8 = Math.floor((fontWidth + 7) / 8);
+            const fontSize = w8 * fontHeight;
+            for (let i = 0; i < 256; i++) {
+                const base = 17 + fontSize * i;
+                this.data[i] = GlyphData.deserialize(blob.slice(base, base + fontSize), fontWidth, fontHeight);
+            }
+            return true;
+        },
+        export: function() {
+            let output = [];
+            let header = ["FONTX2"];
+            header.push(this.validateFontName());
+            const { fontWidth, fontHeight } = this;
+            header.push(String.fromCharCode(fontWidth, fontHeight, 0));
+            output.push(header.join(''));
+            const w8 = Math.floor((fontWidth + 7) / 8);
+            for (let i = 0; i < 256; i++) {
+                const glyph = this.data[i] || new GlyphData();
+                output.push(glyph.serialize(fontWidth, fontHeight));
+            }
+            return btoa(output.join(''));
+        }
+    });
+})();
