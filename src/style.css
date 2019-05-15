@@ -145,6 +145,13 @@ hr {
     border-bottom: #AAA solid 1px;
 }
 
+summary {
+    color: #333;
+    font-weight: bold;
+    border-bottom: #999 solid 1px;
+    padding: 0 8px;
+}
+
 #mainCanvas {
     cursor: crosshair;
 }

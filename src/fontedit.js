@@ -32,7 +32,7 @@ class FontEdit {
             "ETAOIN SHRDLU CMFWYP VBGKQJ XZ 1234567890",
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
         ].join('\n');
-        this.loadData(localStorage.getItem(FontEdit.LS_WORKSPACE_KEY) || "Rk9OVFgyICAgICAgICAIEAA=");
+        this.loadData(localStorage.getItem(FontEdit.LS_WORKSPACE_KEY) || "Rk9OVFgyICAgICAgICAIEAA=", false);
         
         $('#fontWidth').addEventListener('input', () => this.resizeDOM());
         $('#fontHeight').addEventListener('input', () => this.resizeDOM());
@@ -71,6 +71,14 @@ class FontEdit {
         $('#shiftUButton').addEventListener('click', () => this.mainCanvas.shiftU());
         $('#shiftDButton').addEventListener('click', () => this.mainCanvas.shiftD());
         
+        $('#undoButton').addEventListener('click', () => {
+            this.mainCanvas.undo();
+        });
+        
+        $('#redoButton').addEventListener('click', () => {
+            this.mainCanvas.redo();
+        });
+        
         $('#applyButton').addEventListener('click', () => {
             this.fontDriver.setGlyph(this.currentEditCode, this.mainCanvas.glyph);
             this.refreshPreview();
@@ -95,7 +103,6 @@ class FontEdit {
         })
         
         $('#exportMenuButton').addEventListener('click', () => new ExportDialog().show())
-        $('#infoButton').addEventListener('click', () => new FontInfoDialog().show())
         
         $('#fontName').addEventListener('input', () => {
             this.fontDriver.fontName = $('#fontName').value;
@@ -169,7 +176,6 @@ class FontEdit {
         $('#exportImageButton').addEventListener('click', () => {
             const canvas = document.createElement('canvas')
             this.fontDriver.exportImage(canvas, 16)
-            Dialog.dismissTop()
             new ExportImageDialog().show()
             const img = $('#exportImageMain')
             img.src = canvas.toDataURL('image/png')
@@ -241,9 +247,11 @@ class FontEdit {
         this.fontDriver.drawText(str, canvas)
     }
     
-    setFontDriver(fontDriver) {
+    setFontDriver(fontDriver, save = true) {
         this.fontDriver = fontDriver
-        localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontDriver.export());
+        if (save) {
+            localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontDriver.export());
+        }
         this.mainCanvas.resize(this.fontDriver.fontWidth, this.fontDriver.fontHeight);
         $('#fontName').value = this.fontDriver.fontName;
         $('#fontWidth').value = this.fontDriver.fontWidth;
@@ -252,8 +260,14 @@ class FontEdit {
         this.refreshPreview();
     }
     
-    loadData (blob) {
-        if (blob.startsWith('\x89PNG\x0D\x0A\x1A\x0A') || blob.startsWith('\xFF\xD8')) {
+    loadData (blob, save = true) {
+        let imageType = null;
+        if (blob.startsWith('\x89PNG\x0D\x0A\x1A\x0A')) {
+            imageType = 'image/png';
+        } else if (blob.startsWith('\xFF\xD8')) {
+            imageType = 'image/jpeg';
+        }
+        if (imageType) {
             const img = new Image()
             img.addEventListener('load', () => {
                 const { width, height } = img
@@ -285,10 +299,10 @@ class FontEdit {
                 new ImportImageDialog().show()
                 this.resizeImport()
             })
-            img.src = "data:image/png;base64," + btoa(blob)
+            img.src = "data:" + imageType + ";base64," + btoa(blob)
             return true;
         } else if (this.fontDriver.import(blob)) {
-            this.setFontDriver(this.fontDriver)
+            this.setFontDriver(this.fontDriver, save)
             return true;
         } else {
             alert('ERROR: Cannot import data');
@@ -433,19 +447,14 @@ class ImportImageDialog extends Dialog {
     }
 }
 
-class FontInfoDialog extends Dialog {
-    constructor () {
-        super('#fontInfoDialog')
-    }
-}
-
 
 class GlyphEditor {
     constructor(selector) {
-        this.canvas = $(selector)
-        this.margin = 8
-        this.glyph = new GlyphData()
-        this.penStyle = -1
+        this.canvas = $(selector);
+        this.margin = 8;
+        this.glyph = new GlyphData();
+        this.penStyle = -1;
+        this.resetCheckPoint();
         
         this.canvas.addEventListener('mousedown', (e) => {
             this.mouseDown = true;
@@ -467,6 +476,7 @@ class GlyphEditor {
             this.mouseDown = false;
             const { ex, ey } = this.convertMouseEvent(e);
             this.setPixel(ex, ey, this.currentColor);
+            this.setCheckPoint();
             e.preventDefault();
             e.stopPropagation();
         }, false);
@@ -483,6 +493,7 @@ class GlyphEditor {
             e.preventDefault();
         }, false);
         this.canvas.addEventListener('touchend', (e) => {
+            this.setCheckPoint();
             e.preventDefault();
         }, false);
         this.canvas.addEventListener('touchcancel', (e) => {
@@ -529,6 +540,7 @@ class GlyphEditor {
     }
     clear() {
         this.glyph = new GlyphData();
+        this.setCheckPoint();
         this.redraw();
     }
     getPixel(x, y) {
@@ -558,27 +570,62 @@ class GlyphEditor {
     }
     reverse() {
         this.glyph.reverse();
+        this.setCheckPoint();
         this.redraw();
     }
     shiftL() {
         this.glyph.shiftL(this.width);
+        this.setCheckPoint();
         this.redraw();
     }
     shiftR() {
         this.glyph.shiftR(this.width);
+        this.setCheckPoint();
         this.redraw();
     }
     shiftU() {
         this.glyph.shiftU(this.height);
+        this.setCheckPoint();
         this.redraw();
     }
     shiftD() {
+        this.setCheckPoint();
         this.glyph.shiftD(this.height);
         this.redraw();
     }
     loadGlyph(glyph) {
         this.glyph = glyph.clone();
+        this.resetCheckPoint();
         this.redraw();
+    }
+    resetCheckPoint() {
+        this.undoList = [this.glyph.clone()];
+        this.redoList = [];
+    }
+    setCheckPoint() {
+        this.undoList.push(this.glyph.clone());
+        this.redoList = [];
+    }
+    get canUndo() {
+        return this.undoList.length > 1;
+    }
+    get canRedo() {
+        return this.redoList.length > 0;
+    }
+    undo() {
+        if (this.canUndo) {
+            this.redoList.push(this.undoList.pop());
+            this.glyph = this.undoList.slice(-1)[0].clone();
+            this.redraw();
+        }
+    }
+    redo() {
+        if (this.canRedo) {
+            const glyph = this.redoList.pop();
+            this.glyph = glyph.clone();
+            this.undoList.push(glyph);
+            this.redraw();
+        }
     }
 }
 
@@ -610,6 +657,12 @@ class GlyphData {
     }
     get isWhite() {
         return !this.rawData.reduce((a, b) => a | b);
+    }
+    equals(obj) {
+        if (typeof obj !== typeof this) return false;
+        return this.rawData.reduce((a, v, i) => {
+            return a && (obj.rawData[i] == v)
+        }, true);
     }
     clone() {
         return new GlyphData(this.rawData)
@@ -718,14 +771,6 @@ class FontDriver {
     }
     static registerDriver(driverName, classDef) {
         FontDriver.driverList[driverName] = classDef;
-    }
-    static deserialize(data) {
-        const result = new FontDriver();
-        if (result.import(data)){
-            return result;
-        } else {
-            return null;
-        }
     }
     import(data) {
         for (const name in FontDriver.driverList) {

@@ -16,30 +16,46 @@
                 :: Font Edit ::
                 <a id="saveLoadButton" class="button">Save / Load</a>
                 <a id="exportMenuButton" class="button">Export</a>
-                <a id="infoButton" class="button">Info</a>
             </nav>
         </header>
         
         <aside id="toolBox0">
             <div id="toolBox1">
-                <ul>
-                    <li>
-                        <label>Char: <input id="glyphChar" type="text" size="2" placeholder="X"></label>
-                    </li>
-                    <li>
-                    </li>
-                    <li>
-                        <a id="glyphLt" class="button">&lt;</a>
-                        <input id="glyphCode" type="text" maxlength="2" size="4" placeholder="00">
-                        <a id="glyphGt" class="button">&gt;</a>
-                    </li>
-                </ul>
-                <hr>
+                <details open="open">
+                    <summary>Glyph</summary>
+                    <ul>
+                        <li>
+                            <label>Char: <input id="glyphChar" type="text" size="2" placeholder="X"></label>
+                        </li>
+                        <li>
+                        </li>
+                        <li>
+                            <a id="glyphLt" class="button">&lt;</a>
+                            <input id="glyphCode" type="text" maxlength="2" size="4" placeholder="00">
+                            <a id="glyphGt" class="button">&gt;</a>
+                        </li>
+                    </ul>
+                    </details>
+                <details open="open">
+                    <summary>General Info</summary>
+                    <ul>
+                        <li>
+                            <label>Name: <input id="fontName" type="text" maxlength="8" placeholder="FONTNAME" style="width: 8em;"></label>
+                        </li>
+                        <li>
+                            <label>Width: <input id="fontWidth" type="number" min="1" value="8" style="width: 3em;"></label>
+                        </li>
+                        <li>
+                            <label>Height: <input id="fontHeight" type="number" min="1" value="16" style="width: 3em;"></label>
+                        </li>
+                        <li>
+                            <label><input type="checkbox" checked="checked" disabled="disabled">ASCII Font</label>
+                        </li>
+                    </ul>
+                </details>
             </div>
             <div id="toolBox2">
                 <a id="applyButton" class="buttonActive">Apply</a>
-                <br>
-                <a id="reverseButton" class="button">Reverse B/W</a>
                 <br>
                 <table id="arrows">
                     <tr><td></td><td><a id="shiftUButton" class="button">&#x2191;</a></td></tr>
@@ -57,6 +73,11 @@
                         <label><input type="radio" name="pen" value="0">W</label>
                     </fieldset>
                 </form>
+                <a id="undoButton" class="button">Undo</a> /
+                <a id="redoButton" class="button">Redo</a>
+                <br>
+                <a id="reverseButton" class="button">Reverse B/W</a>
+                <br>
                 <a id="clearButton" class="buttonDestructive">Clear</a>
             </div>
         </aside>
@@ -86,8 +107,8 @@
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
             <h2>&#x1F5A8; Export...</h2>
             <ul>
-                <li><a id="exportFontXButton" class="button">Export as FONTX2</a></li>
                 <li><a id="exportImageButton" class="button">Export Image</a></li>
+                <li><a id="exportFontXButton" class="button">Export as FONTX2</a></li>
             </ul>
         </div>
     </div>
@@ -141,19 +162,6 @@
             </label>
             <br>
             <canvas id="importImageCanvas"></canvas>
-        </div>
-    </div>
-    
-    <div id="fontInfoDialog" class="dialog">
-        <div class="dialogInner">
-            <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
-            <h2>Font Info</h2>
-            <label>Name: <input id="fontName" type="text" maxlength="8" placeholder="FONTNAME" style="width: 8em;"></label>
-            <br>
-            <label>Width: <input id="fontWidth" type="number" min="1" value="8" style="width: 3em;"></label>
-            <label>Height: <input id="fontHeight" type="number" min="1" value="16" style="width: 3em;"></label>
-            <br>
-            <label><input type="checkbox" checked="checked" disabled="disabled">ASCII Font</label>
         </div>
     </div>
     
