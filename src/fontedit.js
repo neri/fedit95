@@ -152,27 +152,6 @@ class FontEdit {
             reader.readAsBinaryString(e.target.files[0]);
         }, false);
         
-        const base64_to_buffer = (base64) => {
-            const str = atob(base64)
-            const array = new ArrayBuffer(str.length)
-            const u8v = new Uint8Array(array)
-            for (let i = 0; i < str.length; i++) {
-                u8v[i] = str.charCodeAt(i)
-            }
-            return u8v
-        }
-        
-        $('#exportFontXButton').addEventListener('click', () => this.exportText(this.fontDriver.exportAs('FONTX2')));
-        
-        $('#exportTextButton').addEventListener('click', () => {
-            const blob = new Blob([base64_to_buffer($('#exportTextArea').value)], {type: 'application/octet-stream'})
-            const url = URL.createObjectURL(blob)
-            const tag = document.createElement('a')
-            tag.href = url
-            tag.download = (this.fontDriver.fontName || 'font').toLowerCase() + '.fnt'
-            tag.click()
-        })
-        
         $('#exportImageButton').addEventListener('click', () => {
             const canvas = document.createElement('canvas')
             this.fontDriver.exportImage(canvas, 16)
@@ -197,7 +176,49 @@ class FontEdit {
             this.setFontDriver(this.importFont)
             new ImportImageDialog().dismiss()
         }, false)
+
+        const base64_to_buffer = (base64) => {
+            const str = atob(base64)
+            const array = new ArrayBuffer(str.length)
+            const u8v = new Uint8Array(array)
+            for (let i = 0; i < str.length; i++) {
+                u8v[i] = str.charCodeAt(i)
+            }
+            return u8v
+        }
         
+        $('#exportTextButton').addEventListener('click', () => {
+            let blob;
+            if (this.exportDriver.binary) {
+                blob = new Blob([base64_to_buffer($('#exportTextArea').value)], {type: 'application/octet-stream'});
+            } else {
+                blob = new Blob([$('#exportTextArea').value], {type: 'text/plain'});
+            }
+            const url = URL.createObjectURL(blob);
+            const tag = document.createElement('a');
+            tag.href = url;
+            tag.download = (this.fontDriver.fontName || 'font').toLowerCase() + this.exportDriver.extension;
+            tag.click();
+        })
+        
+        const ph = $('#exportMenuPlaceholder');
+        for (const provider in FontDriver.driverList) {
+            const driver = FontDriver.driverList[provider];
+            if (!driver.export) continue;
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.className = 'button';
+            a.addEventListener('click', (e) => {
+                this.exportDriver = FontDriver.driverList[provider];
+                $('#exportTextArea').value = this.fontDriver.exportAs(provider);
+                $('#exportTextDialog h2').innerText = `Export as ${provider}`;
+                new ExportTextDialog().show()
+            });
+            a.appendChild(document.createTextNode(`Export as ${provider}`));
+            li.appendChild(a);
+            ph.appendChild(li);
+        }
+
         document.querySelectorAll('#penToolGroup input[type=radio]').forEach(radio => {
             radio.addEventListener('change', () => {
                 this.mainCanvas.penStyle = parseInt($('#penToolGroup').pen.value)
@@ -352,11 +373,6 @@ class FontEdit {
         this.importFont.drawText('ABCD abcd 1234', canvas2)
     }
     
-    exportText(text) {
-        $('#exportTextArea').value = text;
-        new ExportTextDialog().show()
-    }
-    
 }
 
 
@@ -428,6 +444,9 @@ class SaveLoadDialog extends Dialog {
 class ExportTextDialog extends Dialog {
     constructor () {
         super('#exportTextDialog')
+    }
+    onclose () {
+        this.exportDriver = null;
     }
 }
 
@@ -775,7 +794,7 @@ class FontDriver {
     import(data) {
         for (const name in FontDriver.driverList) {
             const driver = FontDriver.driverList[name];
-            if (driver.import.call(this, data)) {
+            if (driver.import && driver.import.call(this, data)) {
                 return true;
             }
         }
@@ -786,7 +805,10 @@ class FontDriver {
         return this.exportAs(name);
     }
     exportAs(provider) {
-        return FontDriver.driverList[provider].export.call(this);
+        const def = FontDriver.driverList[provider];
+        if (!def) throw `PROVIDER ${provider}: NOT FOUND`;
+        if (!def.export) throw `PROVIDER ${provider}: CANNOT EXPORT`;
+        return def.export.call(this);
     }
     
     getGlyph(code) {
@@ -833,6 +855,8 @@ class FontDriver {
     exportImage(canvas, cols) {
         const { fontWidth, fontHeight } = this;
         const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.0)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         const baseChar = 0x20;
         const charCount = 0x80 - baseChar;
         canvas.width = fontWidth * cols;
@@ -884,7 +908,8 @@ class FontDriver {
 
 
 (function(){
-    FontDriver.registerDriver('FONTX2', { 
+    FontDriver.registerDriver('FONTX2', {
+        extension: '.fnt', binary: true,
         import: function(blob) {
             if (blob.startsWith('Rk9OVFgy')) {
                 blob = atob(blob);

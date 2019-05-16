@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width">
+    <meta name="viewport" content="width=640">
     <link rel="stylesheet" href="style.css">
     <script src="fontedit.js"></script>
     <title>Font Edit '95</title>
@@ -22,7 +22,7 @@
         <aside id="toolBox0">
             <div id="toolBox1">
                 <details open="open">
-                    <summary>Glyph</summary>
+                    <summary>Glyph Selector</summary>
                     <ul>
                         <li>
                             <label>Char: <input id="glyphChar" type="text" size="2" placeholder="X"></label>
@@ -106,9 +106,8 @@
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
             <h2>&#x1F5A8; Export...</h2>
-            <ul>
+            <ul id="exportMenuPlaceholder">
                 <li><a id="exportImageButton" class="button">Export Image</a></li>
-                <li><a id="exportFontXButton" class="button">Export as FONTX2</a></li>
             </ul>
         </div>
     </div>
