@@ -236,3 +236,12 @@ summary {
     top: -6px;
     right: -2px;
 }
+
+/* #alertDialog .dialogInner {
+    min-width: 240px;
+} */
+
+#alertDialog p {
+    text-align: center;
+    margin: 1em 4em;
+}

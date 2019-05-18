@@ -70,14 +70,8 @@ class FontEdit {
         $('#shiftRButton').addEventListener('click', () => this.mainCanvas.shiftR());
         $('#shiftUButton').addEventListener('click', () => this.mainCanvas.shiftU());
         $('#shiftDButton').addEventListener('click', () => this.mainCanvas.shiftD());
-        
-        $('#undoButton').addEventListener('click', () => {
-            this.mainCanvas.undo();
-        });
-        
-        $('#redoButton').addEventListener('click', () => {
-            this.mainCanvas.redo();
-        });
+        $('#undoButton').addEventListener('click', () => this.mainCanvas.undo());
+        $('#redoButton').addEventListener('click', () => this.mainCanvas.redo());
         
         $('#applyButton').addEventListener('click', () => {
             this.fontDriver.setGlyph(this.currentEditCode, this.mainCanvas.glyph);
@@ -91,6 +85,17 @@ class FontEdit {
             }
         });
         
+        $('#ajaxDialogButton').addEventListener('click', () => new AjaxDialog().show());
+        
+        $('#ajaxForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const url = $('#urlInputField').value;
+            if (url.length == 0) return;
+            this.loadAjax(url, () => {
+                Dialog.dismissTop();
+            });
+        }, false);
+
         $('#previewText').addEventListener('input', () => this.refreshPreview());
         
         $('#previewText').addEventListener('change', () => {
@@ -176,7 +181,7 @@ class FontEdit {
             this.setFontDriver(this.importFont)
             new ImportImageDialog().dismiss()
         }, false)
-
+        
         const base64_to_buffer = (base64) => {
             const str = atob(base64)
             const array = new ArrayBuffer(str.length)
@@ -218,7 +223,7 @@ class FontEdit {
             li.appendChild(a);
             ph.appendChild(li);
         }
-
+        
         document.querySelectorAll('#penToolGroup input[type=radio]').forEach(radio => {
             radio.addEventListener('change', () => {
                 this.mainCanvas.penStyle = parseInt($('#penToolGroup').pen.value)
@@ -231,6 +236,18 @@ class FontEdit {
             })
         });
         
+        window.alert = (x) => {
+            this.showMessage(x);
+        }
+        
+        window.addEventListener('load', () => {
+            if (location.hash.startsWith('#https://'))
+            {
+                this.loadAjax(location.hash.slice(1), () => {
+                    location.hash = '';
+                });
+            }
+        });
     }
     
     dimWindow (x = 1) {
@@ -373,6 +390,36 @@ class FontEdit {
         this.importFont.drawText('ABCD abcd 1234', canvas2)
     }
     
+    loadAjax(url, onsuccess = undefined) {
+        this.showMessage('Loading...', {noTitle: true});
+        fetch(url)
+        .then(res => {
+            if (res.ok) {
+                return res.blob();
+            } else {
+                throw 'HTTP Error';
+            }
+        })
+        .then(blob => {
+            Dialog.dismissTop();
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const success = this.loadData(reader.result);
+                if (success && onsuccess) {
+                    onsuccess();
+                }
+            }
+            reader.readAsBinaryString(blob);
+        })
+        .catch(err => {
+            Dialog.dismissTop();
+            alert(err);
+        });
+    }
+    
+    showMessage(message, options = {}) {
+        new AlertDialog(message, options).show();
+    }
 }
 
 
@@ -429,21 +476,38 @@ Dialog._lastIndex = 0;
 Dialog._stack = [];
 
 
+class AlertDialog extends Dialog {
+    constructor (message, options) {
+        super('#alertDialog');
+        const title = options.title || '';
+        if (options.noTitle) {
+            $('#alertTitle').style.display = 'none';
+            $('#alertDialog .dialogCloseButton').style.display = 'none';
+        } else {
+            $('#alertTitle').style.display = 'block';
+            $('#alertDialog .dialogCloseButton').style.display = 'inline-block';
+            $('#alertTitle').innerText = `\u274F ${title}`;
+        }
+        $('#alertMessage').innerText = message;
+    }
+}
+
+
 class ExportDialog extends Dialog {
     constructor () {
-        super('#exportMenu')
+        super('#exportMenu');
     }
 }
 
 class SaveLoadDialog extends Dialog {
     constructor () {
-        super('#saveLoadDialog')
+        super('#saveLoadDialog');
     }
 }
 
 class ExportTextDialog extends Dialog {
     constructor () {
-        super('#exportTextDialog')
+        super('#exportTextDialog');
     }
     onclose () {
         this.exportDriver = null;
@@ -452,19 +516,26 @@ class ExportTextDialog extends Dialog {
 
 class ExportImageDialog extends Dialog {
     constructor () {
-        super('#exportImageDialog')
+        super('#exportImageDialog');
     }
 }
 
 class ImportImageDialog extends Dialog {
     constructor () {
-        super('#importImageDialog')
+        super('#importImageDialog');
     }
     onclose () {
-        app.importFont = null
-        app.importImgCanvas = null
+        app.importFont = null;
+        app.importImgCanvas = null;
     }
 }
+
+class AjaxDialog extends Dialog {
+    constructor () {
+        super('#ajaxDialog');
+    }
+}
+
 
 
 class GlyphEditor {

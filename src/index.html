@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=640">
+    <meta name="description" content="Bitmap Font Editor">
     <link rel="stylesheet" href="style.css">
     <script src="fontedit.js"></script>
     <title>Font Edit '95</title>
@@ -14,8 +15,9 @@
         <header>
             <nav>
                 :: Font Edit ::
-                <a id="saveLoadButton" class="button">Save / Load</a>
-                <a id="exportMenuButton" class="button">Export</a>
+                <a id="saveLoadButton" class="button" title="Save / Load">&#x1F4BE;</a>
+                <a id="ajaxDialogButton" class="button" title="Web">&#x1F310;</a>
+                <a id="exportMenuButton" class="button" title="Export">&#x22EE;</a>
             </nav>
         </header>
         
@@ -113,13 +115,32 @@
         
     </div>
     
+    <div id="alertDialog" class="dialog">
+        <div class="dialogInner">
+            <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
+            <h2 id="alertTitle"></h2>
+            <p id="alertMessage"></p>
+        </div>
+    </div>
+    
     <div id="exportMenu" class="dialog">
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
-            <h2>&#x1F5A8; Export...</h2>
+            <h2>Export...</h2>
             <ul id="exportMenuPlaceholder">
                 <li><a id="exportImageButton" class="button">Export Image</a></li>
             </ul>
+        </div>
+    </div>
+    
+    <div id="ajaxDialog" class="dialog">
+        <div class="dialogInner">
+            <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
+            <h2>&#x1F310; Load from Web</h2>
+            <form id="ajaxForm">
+                <label>URL: <input id="urlInputField" type="text" placeholder="https://example.com/"></label>
+                <button id="ajaxFormButton" type="submit" class="buttonActive">Load</button>
+            </form>
         </div>
     </div>
     
