@@ -35,7 +35,7 @@
                             <a id="glyphGt" class="button">&gt;</a>
                         </li>
                     </ul>
-                    </details>
+                </details>
                 <details open="open">
                     <summary>General Info</summary>
                     <ul>
@@ -55,16 +55,25 @@
                 </details>
             </div>
             <div id="toolBox2">
-                <a id="applyButton" class="buttonActive">Apply</a>
-                <br>
-                <table id="arrows">
-                    <tr><td></td><td><a id="shiftUButton" class="button">&#x2191;</a></td></tr>
-                    <tr>
-                        <td><a id="shiftLButton" class="button">&#x2190;</a></td>
-                        <td><a id="shiftDButton" class="button">&#x2193;</a></td>
-                        <td><a id="shiftRButton" class="button">&#x2192;</a></td>
-                    </tr>
-                </table>
+                <ul>
+                    <li>
+                        <a id="applyButton" class="buttonActive">Apply</a>
+                    </li>
+                    <li>
+                        <a id="undoButton" class="button">Undo</a> /
+                        <a id="redoButton" class="button">Redo</a>
+                    </li>
+                    <li>
+                        <table id="arrows">
+                            <tr><td></td><td><a id="shiftUButton" class="button">&#x2191;</a></td></tr>
+                            <tr>
+                                <td><a id="shiftLButton" class="button">&#x2190;</a></td>
+                                <td><a id="shiftDButton" class="button">&#x2193;</a></td>
+                                <td><a id="shiftRButton" class="button">&#x2192;</a></td>
+                            </tr>
+                        </table>
+                    </li>
+                </ul>
                 <form id="penToolGroup">
                     <fieldset>
                         <legend>Color</legend>
@@ -73,12 +82,14 @@
                         <label><input type="radio" name="pen" value="0">W</label>
                     </fieldset>
                 </form>
-                <a id="undoButton" class="button">Undo</a> /
-                <a id="redoButton" class="button">Redo</a>
-                <br>
-                <a id="reverseButton" class="button">Reverse B/W</a>
-                <br>
-                <a id="clearButton" class="buttonDestructive">Clear</a>
+                <ul>
+                    <li>
+                        <a id="clearButton" class="buttonDestructive">Clear Canvas</a>
+                    </li>
+                    <li>
+                        <a id="reverseButton" class="button">Reverse B/W</a>
+                    </li>
+                </ul>
             </div>
         </aside>
         
@@ -126,15 +137,15 @@
     </div>
     
     <div id="exportTextDialog" class="dialog">
-            <div class="dialogInner">
-                <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
-                <h2>Export</h2>
-                <a id="exportTextButton" class="buttonActive">Export</a>
-                <br>
-                <textarea id="exportTextArea" cols="40" rows="10" readonly="readonly"></textarea>
-            </div>
+        <div class="dialogInner">
+            <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
+            <h2>Export</h2>
+            <a id="exportTextButton" class="buttonActive">Export</a>
+            <br>
+            <textarea id="exportTextArea" cols="40" rows="10" readonly="readonly"></textarea>
         </div>
-        
+    </div>
+    
     <div id="exportImageDialog" class="dialog">
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
