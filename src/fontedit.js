@@ -938,7 +938,6 @@ class FontDriver {
             const { fontWidth, fontHeight } = this;
             header.push(String.fromCharCode(fontWidth, fontHeight, 0));
             output.push(header.join(''));
-            const w8 = Math.floor((fontWidth + 7) / 8);
             for (let i = 0; i < 256; i++) {
                 const glyph = this.data[i] || new GlyphData();
                 output.push(glyph.serialize(fontWidth, fontHeight));
@@ -946,4 +945,36 @@ class FontDriver {
             return btoa(output.join(''));
         }
     });
+})();
+
+
+(function(){
+    const toHex = (v, l) => `0x${('00000000' + v.toString(16)).slice(-l)}`;
+    const validateFontName = (n) => (n || '').trim().replace(/\W/g, '_');
+    FontDriver.registerDriver('C Header File', {
+        extension: '.h', binary: false,
+        export: function() {
+            const { fontWidth, fontHeight } = this;
+            const fontName = validateFontName(this.fontName) || 'font';
+            let output = [];
+            const baseChar = 0x20;
+            const charCount = 0x80 - baseChar;
+            const w8 = Math.floor((fontWidth + 7) / 8);
+            const fontSize = w8 * fontHeight;
+            output.push(`// GENERATED ${fontName}.h`);
+            output.push(`static const int ${fontName}_width = ${fontWidth}, ${fontName}_height = ${fontHeight};`);
+            output.push(`static const unsigned char ${fontName}_fontdata[${charCount}][${fontSize}] = {`);
+            for (let i = 0; i < charCount; i++) {
+                const glyph = this.data[baseChar + i] || new GlyphData();
+                const bin = glyph.serialize(fontWidth, fontHeight);
+                let line = [];
+                for (let j = 0; j < bin.length; j++) {
+                    line.push(toHex(bin.charCodeAt(j), 2));
+                }
+                output.push(`{${line.join(',')}},`);
+            }
+            output.push('};');
+            return output.join('\n');
+        }
+    })
 })();
