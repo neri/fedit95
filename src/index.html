@@ -10,16 +10,17 @@
 </head>
 <body>
     
+    
+    <header>
+        <nav>
+            :: Font Edit ::
+            <a id="saveLoadButton" class="button" title="Save / Load">&#x1F4BE;</a>
+            <a id="ajaxDialogButton" class="button" title="Web">&#x1F310;</a>
+            <a id="exportMenuButton" class="button" title="Export">&#x22EE;</a>
+        </nav>
+    </header>
+    
     <div id="mainScreen">
-        
-        <header>
-            <nav>
-                :: Font Edit ::
-                <a id="saveLoadButton" class="button" title="Save / Load">&#x1F4BE;</a>
-                <a id="ajaxDialogButton" class="button" title="Web">&#x1F310;</a>
-                <a id="exportMenuButton" class="button" title="Export">&#x22EE;</a>
-            </nav>
-        </header>
         
         <aside id="toolBox0">
             <div id="toolBox1">
@@ -57,41 +58,44 @@
                 </details>
             </div>
             <div id="toolBox2">
-                <ul>
-                    <li>
-                        <a id="applyButton" class="buttonActive">Apply</a>
-                    </li>
-                    <li>
-                        <a id="undoButton" class="button">Undo</a> /
-                        <a id="redoButton" class="button">Redo</a>
-                    </li>
-                    <li>
-                        <table id="arrows">
-                            <tr><td></td><td><a id="shiftUButton" class="button">&#x2191;</a></td></tr>
-                            <tr>
-                                <td><a id="shiftLButton" class="button">&#x2190;</a></td>
-                                <td><a id="shiftDButton" class="button">&#x2193;</a></td>
-                                <td><a id="shiftRButton" class="button">&#x2192;</a></td>
-                            </tr>
-                        </table>
-                    </li>
-                </ul>
-                <form id="penToolGroup">
-                    <fieldset>
-                        <legend>Color</legend>
-                        <label><input type="radio" name="pen" value="-1" checked="checked">Auto</label>
-                        <label><input type="radio" name="pen" value="1">B</label>
-                        <label><input type="radio" name="pen" value="0">W</label>
-                    </fieldset>
-                </form>
-                <ul>
-                    <li>
-                        <a id="clearButton" class="buttonDestructive">Clear Canvas</a>
-                    </li>
-                    <li>
-                        <a id="reverseButton" class="button">Reverse B/W</a>
-                    </li>
-                </ul>
+                <details open="open">
+                    <summary>Tools</summary>
+                    <ul>
+                        <li>
+                            <a id="applyButton" class="buttonActive">Apply</a>
+                        </li>
+                        <li>
+                            <a id="undoButton" class="button">Undo</a> /
+                            <a id="redoButton" class="button">Redo</a>
+                        </li>
+                        <li>
+                            <table id="arrows">
+                                <tr><td></td><td><a id="shiftUButton" class="button">&#x2191;</a></td></tr>
+                                <tr>
+                                    <td><a id="shiftLButton" class="button">&#x2190;</a></td>
+                                    <td><a id="shiftDButton" class="button">&#x2193;</a></td>
+                                    <td><a id="shiftRButton" class="button">&#x2192;</a></td>
+                                </tr>
+                            </table>
+                        </li>
+                    </ul>
+                    <form id="penToolGroup">
+                        <fieldset>
+                            <legend>Color</legend>
+                            <label><input type="radio" name="pen" value="-1" checked="checked">Auto</label>
+                            <label><input type="radio" name="pen" value="1">B</label>
+                            <label><input type="radio" name="pen" value="0">W</label>
+                        </fieldset>
+                    </form>
+                    <ul>
+                        <li>
+                            <a id="clearButton" class="buttonDestructive">Clear Canvas</a>
+                        </li>
+                        <li>
+                            <a id="reverseButton" class="button">Reverse B/W</a>
+                        </li>
+                    </ul>
+                </details>
             </div>
         </aside>
         

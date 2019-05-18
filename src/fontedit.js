@@ -859,7 +859,7 @@ class FontDriver {
         }
         return FontDriver._driverList;
     }
-    static registerDriver(driverName, classDef) {
+    static register(driverName, classDef) {
         FontDriver.driverList[driverName] = classDef;
     }
     import(data) {
@@ -979,7 +979,7 @@ class FontDriver {
 
 
 (function(){
-    FontDriver.registerDriver('FONTX2', {
+    FontDriver.register('FONTX2', {
         extension: '.fnt', binary: true,
         import: function(blob) {
             if (blob.startsWith('Rk9OVFgy')) {
@@ -1022,7 +1022,7 @@ class FontDriver {
 (function(){
     const toHex = (v, l) => `0x${('00000000' + v.toString(16)).slice(-l)}`;
     const validateFontName = (n) => (n || '').trim().replace(/\W/g, '_');
-    FontDriver.registerDriver('C Header File', {
+    FontDriver.register('C Header File', {
         extension: '.h', binary: false,
         export: function() {
             const { fontWidth, fontHeight } = this;
