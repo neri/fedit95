@@ -11,6 +11,12 @@ let app;
 
 document.addEventListener('DOMContentLoaded', () => {
     app = new FontEdit();
+    if (location.hash.startsWith('#https://'))
+    {
+        app.loadAjax(location.hash.slice(1), () => {
+            location.hash = '';
+        });
+    }
 });
 
 
@@ -95,7 +101,7 @@ class FontEdit {
                 Dialog.dismissTop();
             });
         }, false);
-
+        
         $('#previewText').addEventListener('input', () => this.refreshPreview());
         
         $('#previewText').addEventListener('change', () => {
@@ -219,7 +225,7 @@ class FontEdit {
                 $('#exportTextDialog h2').innerText = `Export as ${provider}`;
                 new ExportTextDialog().show()
             });
-            a.appendChild(document.createTextNode(`Export as ${provider}`));
+            a.appendChild(document.createTextNode(provider));
             li.appendChild(a);
             ph.appendChild(li);
         }
@@ -240,14 +246,6 @@ class FontEdit {
             this.showMessage(x);
         }
         
-        window.addEventListener('load', () => {
-            if (location.hash.startsWith('#https://'))
-            {
-                this.loadAjax(location.hash.slice(1), () => {
-                    location.hash = '';
-                });
-            }
-        });
     }
     
     dimWindow (x = 1) {
@@ -441,7 +439,7 @@ class Dialog {
         if (dialog.element.style.display === 'block') return;
         app.dimWindow(1);
         
-        if (Dialog._stack.length == 0) Dialog._lastIndex = 1;
+        if (Dialog._stack.length == 0) Dialog._lastIndex = 100;
         Dialog._stack.push(dialog)
         dialog.element.style.zIndex = (++Dialog._lastIndex)
         dialog.element.style.display = 'block';

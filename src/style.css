@@ -21,6 +21,7 @@ header {
     background: #EEEEEE;
     color: #212121;
     box-shadow: 1px 1px 4px 2px rgba(0, 0, 0, 0.125);
+    z-index: 1;
 }
 
 @media screen and (max-width:599px) {
@@ -215,7 +216,7 @@ summary {
 
 .dialog {
     display: none;
-    position: absolute;
+    position: fixed;
     left: 0;
     top: 0;
     width: 100%;
