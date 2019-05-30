@@ -2,7 +2,8 @@
 
 Bitmap Font Editor
 
-- Preview website is [here](https://nerry.jp/fedit95/src/)
+- [Preview website](https://nerry.jp/fedit95/src/)
+- [Repository](https://github.com/neri/fedit95/)
 
 ## Supported Environment
 
@@ -21,4 +22,7 @@ Bitmap Font Editor
 ## License
 
 - GPLv3
+
+----
+
 - Copyright (C) 2019 Nerry, https://nerry.jp/
