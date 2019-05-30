@@ -78,6 +78,8 @@ class FontEdit {
         $('#shiftDButton').addEventListener('click', () => this.mainCanvas.shiftD());
         $('#undoButton').addEventListener('click', () => this.mainCanvas.undo());
         $('#redoButton').addEventListener('click', () => this.mainCanvas.redo());
+        $('#yankButton').addEventListener('click', () => this.mainCanvas.yank());
+        $('#pasteButton').addEventListener('click', () => this.mainCanvas.paste());
         
         $('#applyButton').addEventListener('click', () => {
             this.fontDriver.setGlyph(this.currentEditCode, this.mainCanvas.glyph);
@@ -676,9 +678,19 @@ class GlyphEditor {
         this.redraw();
     }
     shiftD() {
-        this.setCheckPoint();
         this.glyph.shiftD(this.height);
+        this.setCheckPoint();
         this.redraw();
+    }
+    yank() {
+        this.yankBuffer = this.glyph.clone();
+    }
+    paste() {
+        if (this.yankBuffer) {
+            this.glyph = this.yankBuffer.clone();
+            this.setCheckPoint();
+            this.redraw();
+        }
     }
     loadGlyph(glyph) {
         this.glyph = glyph.clone();
