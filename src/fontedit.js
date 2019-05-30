@@ -535,12 +535,11 @@ class AjaxDialog extends Dialog {
 }
 
 
-
 class GlyphEditor {
     constructor(selector) {
         this.canvas = $(selector);
         this.margin = 8;
-        this.glyph = new GlyphData();
+        this.glyph = new GlyphModel();
         this.penStyle = -1;
         this.resetCheckPoint();
         
@@ -603,7 +602,7 @@ class GlyphEditor {
         return {ex, ey};
     }
     resize(width, height) {
-        if (width > 0 && width <= GlyphData.MAX_WIDTH && height > 0 && height <= GlyphData.MAX_HEIGHT)
+        if (width > 0 && width <= GlyphModel.MAX_WIDTH && height > 0 && height <= GlyphModel.MAX_HEIGHT)
         {} else return false;
         
         this.width = width;
@@ -627,7 +626,7 @@ class GlyphEditor {
         return true;
     }
     clear() {
-        this.glyph = new GlyphData();
+        this.glyph = new GlyphModel();
         this.setCheckPoint();
         this.redraw();
     }
@@ -718,7 +717,7 @@ class GlyphEditor {
 }
 
 
-class GlyphData {
+class GlyphModel {
     static get MAX_WIDTH() { return 32 }
     static get MAX_HEIGHT() { return 32 }
     static get BIT_LEFT() { return 0x80000000 }
@@ -727,19 +726,19 @@ class GlyphData {
         if (rawData) {
             this.rawData = new Uint32Array(rawData);
         } else {
-            this.rawData = new Uint32Array(GlyphData.MAX_HEIGHT);
+            this.rawData = new Uint32Array(GlyphModel.MAX_HEIGHT);
         }
     }
     getPixel(x, y) {
         const row = this.rawData[y] | 0;
-        return (row & (GlyphData.BIT_LEFT >>> x)) != 0;
+        return (row & (GlyphModel.BIT_LEFT >>> x)) != 0;
     }
     setPixel(x, y, color = 1) {
         let row = this.rawData[y] | 0;
         if (color) {
-            row |= (GlyphData.BIT_LEFT >>> x);
+            row |= (GlyphModel.BIT_LEFT >>> x);
         } else {
-            row &= ~(GlyphData.BIT_LEFT >>> x);
+            row &= ~(GlyphModel.BIT_LEFT >>> x);
         }
         this.rawData[y] = row;
     }
@@ -753,23 +752,23 @@ class GlyphData {
         }, true);
     }
     clone() {
-        return new GlyphData(this.rawData)
+        return new GlyphModel(this.rawData)
     }
     reverse() {
         this.rawData = this.rawData.map(value => ~value);
     }
-    shiftL(width = GlyphData.MAX_WIDTH) {
+    shiftL(width = GlyphModel.MAX_WIDTH) {
         this.rawData = this.rawData.map(value => value << 1);
     }
-    shiftR(width = GlyphData.MAX_WIDTH) {
+    shiftR(width = GlyphModel.MAX_WIDTH) {
         this.rawData = this.rawData.map(value => value >>> 1);
     }
-    shiftU(height = GlyphData.MAX_HEIGHT) {
+    shiftU(height = GlyphModel.MAX_HEIGHT) {
         const data = this.rawData[0];
         this.rawData.copyWithin(0, 1, height);
         this.rawData[height - 1] = data;
     }
-    shiftD(height = GlyphData.MAX_HEIGHT) {
+    shiftD(height = GlyphModel.MAX_HEIGHT) {
         const data = this.rawData[height - 1];
         this.rawData.copyWithin(1, 0, height);
         this.rawData[0] = data;
@@ -784,7 +783,7 @@ class GlyphData {
         for (let i = 0; i < height; i++) {
             const rawData = this.rawData[i]
             for (let j = 0; j < width; j++) {
-                if (rawData & (GlyphData.BIT_LEFT >>> j)) {
+                if (rawData & (GlyphModel.BIT_LEFT >>> j)) {
                     imageData.data[index++] = R
                     imageData.data[index++] = G
                     imageData.data[index++] = B
@@ -800,7 +799,7 @@ class GlyphData {
     static get SERIALIZE_FONTX () { return 0; }
     static get SERIALIZE_B64U () { return 1; }
     static deserialize(blob, width, height, type = 0) {
-        let data = new Uint32Array(GlyphData.MAX_HEIGHT);
+        let data = new Uint32Array(GlyphModel.MAX_HEIGHT);
         const w8 = Math.floor((width + 7) / 8);
         for (let i = 0; i < height; i++) {
             let rawData = 0;
@@ -810,7 +809,7 @@ class GlyphData {
             }
             data[i] = rawData;
         }
-        return new GlyphData(data)
+        return new GlyphModel(data)
     }
     serialize(width, height, type = 0) {
         let result = [];
@@ -881,7 +880,7 @@ class FontDriver {
     }
     
     getGlyph(code) {
-        return this.data[code] || new GlyphData();
+        return this.data[code] || new GlyphModel();
     }
     setGlyph(code, glyph) {
         this.data[code] = glyph.clone();
@@ -950,7 +949,7 @@ class FontDriver {
             const y = offsetY + (Math.floor(i / cols) * fontHeight);
             const imageData = ctx.getImageData(x, y, fontWidth, fontHeight);
             let index = 0;
-            let glyph = new GlyphData();
+            let glyph = new GlyphModel();
             for (let j = 0; j < fontHeight; j++) {
                 for (let k = 0; k < fontWidth; k++) {
                     let color;
@@ -989,14 +988,14 @@ class FontDriver {
             const fontWidth = blob.charCodeAt(14);
             const fontHeight = blob.charCodeAt(15);
             const type = blob.charCodeAt(16);
-            if (type == 0 || fontWidth > 0 || fontWidth <= GlyphData.MAX_WIDTH || fontHeight > 0 || fontHeight <= GlyphData.MAX_HEIGHT)
+            if (type == 0 || fontWidth > 0 || fontWidth <= GlyphModel.MAX_WIDTH || fontHeight > 0 || fontHeight <= GlyphModel.MAX_HEIGHT)
             {} else return false;
             this.beginImport(fontWidth, fontHeight, fontName);
             const w8 = Math.floor((fontWidth + 7) / 8);
             const fontSize = w8 * fontHeight;
             for (let i = 0; i < 256; i++) {
                 const base = 17 + fontSize * i;
-                this.data[i] = GlyphData.deserialize(blob.slice(base, base + fontSize), fontWidth, fontHeight);
+                this.data[i] = GlyphModel.deserialize(blob.slice(base, base + fontSize), fontWidth, fontHeight);
             }
             return true;
         },
@@ -1008,7 +1007,7 @@ class FontDriver {
             header.push(String.fromCharCode(fontWidth, fontHeight, 0));
             output.push(header.join(''));
             for (let i = 0; i < 256; i++) {
-                const glyph = this.data[i] || new GlyphData();
+                const glyph = this.data[i] || new GlyphModel();
                 output.push(glyph.serialize(fontWidth, fontHeight));
             }
             return btoa(output.join(''));
@@ -1034,7 +1033,7 @@ class FontDriver {
             output.push(`static const int ${fontName}_width = ${fontWidth}, ${fontName}_height = ${fontHeight};`);
             output.push(`static const unsigned char ${fontName}_fontdata[${charCount}][${fontSize}] = {`);
             for (let i = 0; i < charCount; i++) {
-                const glyph = this.data[baseChar + i] || new GlyphData();
+                const glyph = this.data[baseChar + i] || new GlyphModel();
                 const bin = glyph.serialize(fontWidth, fontHeight);
                 let line = [];
                 for (let j = 0; j < bin.length; j++) {
