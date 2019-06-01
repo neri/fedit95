@@ -809,17 +809,30 @@ class GlyphModel {
     }
     
     static get SERIALIZE_FONTX () { return 0; }
-    static get SERIALIZE_B64U () { return 1; }
+    static get SERIALIZE_ARRAY () { return 1; }
     static deserialize(blob, width, height, type = 0) {
         let data = new Uint32Array(GlyphModel.MAX_HEIGHT);
         const w8 = Math.floor((width + 7) / 8);
-        for (let i = 0; i < height; i++) {
-            let rawData = 0;
-            for (let j = 0; j < w8; j++) {
-                const byte = blob.charCodeAt(i * w8 + j);
-                rawData |= (byte << (24 - j * 8));
+        switch (type) {
+        case this.SERIALIZE_ARRAY:
+            for (let i = 0; i < height; i++) {
+                let rawValue = 0;
+                for (let j = 0; j < w8; j++) {
+                    const byte = blob[i * w8 + j];
+                    rawValue |= (byte << (24 - j * 8));
+                }
+                data[i] = rawValue;
             }
-            data[i] = rawData;
+            break;
+        default:
+            for (let i = 0; i < height; i++) {
+                let rawValue = 0;
+                for (let j = 0; j < w8; j++) {
+                    const byte = blob.charCodeAt(i * w8 + j);
+                    rawValue |= (byte << (24 - j * 8));
+                }
+                data[i] = rawValue;
+            }
         }
         return new GlyphModel(data)
     }
@@ -987,6 +1000,7 @@ class FontDriver {
 }
 
 
+// FONTX2 Driver
 (function(){
     FontDriver.register('FONTX2', {
         extension: '.fnt', binary: true,
@@ -1028,6 +1042,7 @@ class FontDriver {
 })();
 
 
+// Export C Header
 (function(){
     const toHex = (v, l) => `0x${('00000000' + v.toString(16)).slice(-l)}`;
     const validateFontName = (n) => (n || '').trim().replace(/\W/g, '_');
@@ -1057,4 +1072,76 @@ class FontDriver {
             return output.join('\n');
         }
     })
+})();
+
+
+// Import haribote os hankaku.txt
+(function(){
+    class IStream {
+        constructor (blob) {
+            this.blob = blob;
+            this.fp = 0;
+        }
+        getchar () {
+            return this.blob[this.fp++];
+        }
+        gets () {
+            let buffer = [];
+            let cont = true;
+            while (!this.isEOF && cont) {
+                let c = this.getchar();
+                if (c && c.length) {
+                    switch (c) {
+                    case '\r':
+                        break;
+                    case '\n':
+                        cont = false;
+                        break;
+                    default:
+                        buffer.push(c);
+                        break;
+                    }
+                }
+            }
+            return buffer.join('');
+        }
+        get isEOF () {
+            return !(this.blob.length > this.fp);
+        }
+    }
+    FontDriver.register('hankaku.txt', {
+        import: function(blob) {
+            if (blob.indexOf('\0') >= 0) return false;
+            const fontWidth = 8, fontHeight = 16, fontName = 'hankaku';
+            const expectedMinCount = fontHeight * 128;
+            const expectedMaxCount = fontHeight * 256;
+            const is = new IStream(blob);
+            let rawData = new Uint8ClampedArray(expectedMaxCount);
+            let dataPtr = 0;
+            while (!is.isEOF) {
+                const line = is.gets();
+                if (!line || (line[0] !== '.' && line[0] !== '*')) continue;
+                if (dataPtr >= expectedMaxCount) {
+                    console.log('exceeded', expectedMaxCount, dataPtr);
+                    return false;
+                }
+                let rawValue = 0;
+                for (let i = 0; i < 8; i++) {
+                    rawValue <<= 1;
+                    if (!line[i]) break;
+                    if (line[i] === '.') continue;
+                    if (line[i] !== '*') return false;
+                    rawValue |= 1;
+                }
+                rawData[dataPtr++] = rawValue;
+            }
+            if (dataPtr < expectedMinCount) return false;
+            this.beginImport(fontWidth, fontHeight, fontName);
+            for (let i = 0; i < 256; i++) {
+                const array = rawData.slice(i * fontHeight, i * fontHeight + fontHeight - 1);
+                this.data[i] = GlyphModel.deserialize(array, fontWidth, fontHeight, GlyphModel.SERIALIZE_ARRAY);
+            }
+            return true;
+        }
+    });
 })();
