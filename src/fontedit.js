@@ -1080,7 +1080,7 @@ class FontDriver {
             const fontSize = w8 * fontHeight;
             output.push(`// GENERATED ${fontName}.h`);
             output.push(`static const int ${fontName}_width = ${fontWidth}, ${fontName}_height = ${fontHeight};`);
-            output.push(`static const unsigned char ${fontName}_data[${charCount}][${fontSize}] = {`);
+            output.push(`static const unsigned char ${fontName}_fontdata[${charCount}][${fontSize}] = {`);
             for (let i = 0; i < charCount; i++) {
                 const glyph = this.data[baseChar + i] || new GlyphModel();
                 const array = glyph.serialize(fontWidth, fontHeight, GlyphModel.SERIALIZE_ARRAY);
