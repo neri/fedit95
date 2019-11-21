@@ -93,8 +93,6 @@ class FontEdit {
             }
         });
         
-        $('#ajaxDialogButton').addEventListener('click', () => new AjaxDialog().show());
-        
         $('#ajaxForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const url = $('#urlInputField').value;
@@ -115,7 +113,14 @@ class FontEdit {
             new SaveLoadDialog().show()
         })
         
-        $('#exportMenuButton').addEventListener('click', () => new ExportDialog().show())
+        $('#ajaxDialogButton').addEventListener('click', () => {
+            new SaveLoadDialog().dismiss();
+            new AjaxDialog().show();
+        });
+        $('#exportMenuButton').addEventListener('click', () => {
+            new SaveLoadDialog().dismiss();
+            new ExportDialog().show();
+        });
         
         $('#fontName').addEventListener('input', () => {
             this.fontDriver.fontName = $('#fontName').value;
@@ -810,8 +815,9 @@ class GlyphModel {
     
     static get SERIALIZE_FONTX () { return 0; }
     static get SERIALIZE_ARRAY () { return 1; }
+    static get SERIALIZE_B64A () { return 2; }
     static deserialize(blob, width, height, type = 0) {
-        let data = new Uint32Array(GlyphModel.MAX_HEIGHT);
+        let data = new Uint32Array(this.MAX_HEIGHT);
         const w8 = Math.floor((width + 7) / 8);
         switch (type) {
         case this.SERIALIZE_ARRAY:
@@ -838,23 +844,38 @@ class GlyphModel {
     }
     serialize(width, height, type = 0) {
         let result = [];
-        const w8 = Math.floor((width + 7) / 8);
-        for (let i = 0; i < height; i++) {
-            const rawData = this.rawData[i] || 0;
-            for (let j = 0; j < w8; j++) {
-                const byte = (rawData >>> (24 - j * 8)) & 0xFF;
-                result.push(String.fromCharCode(byte));
+        switch (type) {
+        case GlyphModel.SERIALIZE_B64A:
+            const w6 = Math.floor((width + 5) / 6);
+            for (let i = 0; i < height; i++) {
+                const rawData = this.rawData[i] || 0;
+                for (let j = 0; j < w6; j++) {
+                    const byte = (rawData >>> (26 - j * 6)) & 0x3F;
+                    result.push(byte);
+                }
+            }
+            return result;
+        default:
+            const w8 = Math.floor((width + 7) / 8);
+            for (let i = 0; i < height; i++) {
+                const rawData = this.rawData[i] || 0;
+                for (let j = 0; j < w8; j++) {
+                    const byte = (rawData >>> (24 - j * 8)) & 0xFF;
+                    result.push(byte);
+                }
+            }
+            switch (type) {
+                case GlyphModel.SERIALIZE_ARRAY:
+                return result;
+            default:
+                return String.fromCharCode.apply(String, result);
             }
         }
-        return result.join('');
     }
 }
 
 
 class FontDriver {
-    static get BASE64URL_TABLE() {
-        return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-    }
     constructor() {
         this.beginImport(8, 16);
     }
@@ -865,8 +886,9 @@ class FontDriver {
         this.data = new Array(256);
     }
     validateFontName(fontName = this.fontName) {
+        const safeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_";
         let result = (fontName || '').trim().split('').reduce((a, v) => {
-            if (FontDriver.BASE64URL_TABLE.indexOf(v) >= 0) {
+            if (safeChars.indexOf(v) >= 0) {
                 return a + v;
             } else {
                 return a + '_';
@@ -1058,13 +1080,13 @@ class FontDriver {
             const fontSize = w8 * fontHeight;
             output.push(`// GENERATED ${fontName}.h`);
             output.push(`static const int ${fontName}_width = ${fontWidth}, ${fontName}_height = ${fontHeight};`);
-            output.push(`static const unsigned char ${fontName}_fontdata[${charCount}][${fontSize}] = {`);
+            output.push(`static const unsigned char ${fontName}_data[${charCount}][${fontSize}] = {`);
             for (let i = 0; i < charCount; i++) {
                 const glyph = this.data[baseChar + i] || new GlyphModel();
-                const bin = glyph.serialize(fontWidth, fontHeight);
+                const array = glyph.serialize(fontWidth, fontHeight, GlyphModel.SERIALIZE_ARRAY);
                 let line = [];
-                for (let j = 0; j < bin.length; j++) {
-                    line.push(toHex(bin.charCodeAt(j), 2));
+                for (let j = 0; j < array.length; j++) {
+                    line.push(toHex(array[j], 2));
                 }
                 output.push(`{${line.join(',')}},`);
             }
