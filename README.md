@@ -15,7 +15,6 @@ Bitmap Font Editor
 
 |Format|Import|Export|Notes|
 |-|-|-|-|
-|Original format| ☑️ | ☑️ |coming soon?|
 |FONTX2| ☑️ | ☑️ |Both binary and base64 encoding are supported, currently standard format|
 |PNG| ☑️ | ☑️ |Up to 512 x 256, The font size is detected when image width is a multiple of 16 and image height is a multiple of 6 or 8.|
 |hankaku.txt| ☑️ ||Haribote OS|
