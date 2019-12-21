@@ -21,8 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 class FontEdit {
-    static get LS_WORKSPACE_KEY() { return "workSpace"; }
-    static get LS_PREVIEW_KEY() { return "preview"; }
+    static get LS_OLD_WORKSPACE_KEY() { return "workSpace"; }
+    static get LS_WORKSPACE_KEY() { return "jp.nerry.fedit.ws"; }
+    static get LS_PREVIEW_KEY() { return "jp.nerry.fedit.pr"; }
     static get MIN_UNICHAR() { return 0x20 }
     static get MAX_UNICHAR() { return 0x7F }
     
@@ -32,6 +33,12 @@ class FontEdit {
         this.mainCanvas = new GlyphEditor('#mainCanvas');
         this.bgDimmingCount = 0;
         
+        // Migrate old workspace
+        if (localStorage.getItem(FontEdit.LS_OLD_WORKSPACE_KEY)) {
+            localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, localStorage.getItem(FontEdit.LS_OLD_WORKSPACE_KEY));
+            localStorage.removeItem(FontEdit.LS_OLD_WORKSPACE_KEY);
+        }
+
         $('#previewText').value = localStorage.getItem(FontEdit.LS_PREVIEW_KEY) ||
         [
             "The quick brown fox jumps over the lazy dog.",
@@ -290,11 +297,8 @@ class FontEdit {
         this.fontDriver.drawText(str, canvas)
     }
     
-    setFontDriver(fontDriver, save = true) {
+    setFontDriver(fontDriver) {
         this.fontDriver = fontDriver
-        if (save) {
-            localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontDriver.export());
-        }
         this.mainCanvas.resize(this.fontDriver.fontWidth, this.fontDriver.fontHeight);
         $('#fontName').value = this.fontDriver.fontName;
         $('#fontWidth').value = this.fontDriver.fontWidth;
@@ -345,7 +349,7 @@ class FontEdit {
             img.src = "data:" + imageType + ";base64," + btoa(blob)
             return true;
         } else if (this.fontDriver.import(blob)) {
-            this.setFontDriver(this.fontDriver, save)
+            this.setFontDriver(this.fontDriver)
             return true;
         } else {
             alert('ERROR: Cannot import data');
