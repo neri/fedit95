@@ -12,7 +12,7 @@
   "author": "Nerry",
   "license": "GPL",
   "devDependencies": {
-    "electron": "^7.1.2"
+    "electron": "^7.2.4"
   },
   "dependencies": {
     "electron-packager": "^13.1.1"
