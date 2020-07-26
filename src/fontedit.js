@@ -1098,6 +1098,41 @@ class FontDriver {
 })();
 
 
+// Export Rust
+(function () {
+    const toHex = (v, l) => `0x${('00000000' + v.toString(16)).slice(-l)}`;
+    const validateFontName = (n) => (n || '').trim().replace(/\W/g, '_');
+    FontDriver.register('Rust', {
+        extension: '.rs', binary: false,
+        export: function () {
+            const { fontWidth, fontHeight } = this;
+            const fontName = validateFontName(this.fontName) || 'font';
+            const constName = fontName.toUpperCase();
+            let output = [];
+            const baseChar = 0x20;
+            const charCount = 0x80 - baseChar;
+            const w8 = Math.floor((fontWidth + 7) / 8);
+            const fontSize = w8 * fontHeight;
+            output.push(`// GENERATED ${fontName}.rs`);
+            output.push(`pub const FONT_${constName}_WIDTH: usize = ${fontWidth};`);
+            output.push(`pub const FONT_${constName}_HEIGHT: usize = ${fontHeight};`);
+            output.push(`pub const FONT_${constName}_DATA: [u8; ${charCount * fontSize}] = [`);
+            for (let i = 0; i < charCount; i++) {
+                const glyph = this.data[baseChar + i] || new GlyphModel();
+                const array = glyph.serialize(fontWidth, fontHeight, GlyphModel.SERIALIZE_ARRAY);
+                let line = [];
+                for (let j = 0; j < array.length; j++) {
+                    line.push(toHex(array[j], 2));
+                }
+                output.push(`${line.join(',')},`);
+            }
+            output.push('];');
+            return output.join('\n');
+        }
+    })
+})();
+
+
 // Import haribote os hankaku.txt
 (function () {
     class IStream {
