@@ -2,7 +2,7 @@
 html {
     background: #F5F5F5;
     color: #757575;
-    font: 10pt sans-serif;
+	font: 10pt "ヒラギノ丸ゴ Pro", "ヒラギノ丸ゴ Pro W4", "HiraMaruPro-W4", "HiraKakuProN-W3", sans-serif;
     -webkit-user-select: none;
 }
 
@@ -46,8 +46,8 @@ fieldset {
 .button, .buttonActive, .buttonDestructive {
     display: inline-block;
     margin: 4px 2px;
-    padding: 1px 6px;
-    border-radius: 2px;
+    padding: 1px 8px;
+    border-radius: 4px;
     font-weight: bold;
     font-size: 10pt;
     cursor: pointer;
@@ -258,4 +258,8 @@ summary {
 #alertDialog p {
     text-align: center;
     margin: 1em 4em;
+}
+
+#ajaxForm {
+    margin: 1em;
 }

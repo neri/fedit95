@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=640">
@@ -8,18 +9,20 @@
     <script src="fontedit.js"></script>
     <title>Font Edit '95</title>
 </head>
+
 <body>
 
     <header>
         <nav>
-            <a class="button" style="float: right;" href="https://github.com/neri/fedit95" target="_blank">Open in GitHub</a>
+            <a class="button" style="float: right;" href="https://github.com/neri/fedit95" target="_blank">Open in
+                GitHub</a>
             :: Font Edit ::
             <a id="saveLoadButton" class="button" title="">&#x1F4BE; Save/Load</a>
         </nav>
     </header>
-    
+
     <div id="mainScreen">
-        
+
         <aside id="toolBox0">
             <div id="toolBox1">
                 <details open="open">
@@ -41,13 +44,16 @@
                     <summary>General Info</summary>
                     <ul>
                         <li>
-                            <label>Name: <input id="fontName" type="text" maxlength="8" placeholder="FONTNAME" style="width: 8em;"></label>
+                            <label>Name: <input id="fontName" type="text" maxlength="8" placeholder="FONTNAME"
+                                    style="width: 8em;"></label>
                         </li>
                         <li>
-                            <label>Width: <input id="fontWidth" type="number" min="1" value="8" style="width: 3em;"></label>
+                            <label>Width: <input id="fontWidth" type="number" min="1" value="8"
+                                    style="width: 3em;"></label>
                         </li>
                         <li>
-                            <label>Height: <input id="fontHeight" type="number" min="1" value="16" style="width: 3em;"></label>
+                            <label>Height: <input id="fontHeight" type="number" min="1" value="16"
+                                    style="width: 3em;"></label>
                         </li>
                         <li>
                             <label><input type="checkbox" checked="checked" disabled="disabled">ASCII Font</label>
@@ -73,7 +79,10 @@
                         </li>
                         <li>
                             <table id="arrows">
-                                <tr><td></td><td><a id="shiftUButton" class="button">&#x2191;</a></td></tr>
+                                <tr>
+                                    <td></td>
+                                    <td><a id="shiftUButton" class="button">&#x2191;</a></td>
+                                </tr>
                                 <tr>
                                     <td><a id="shiftLButton" class="button">&#x2190;</a></td>
                                     <td><a id="shiftDButton" class="button">&#x2193;</a></td>
@@ -98,13 +107,13 @@
                 </details>
             </div>
         </aside>
-        
+
         <div id="editor">
             <div id="mainCanvasContainer">
                 <canvas id="mainCanvas"></canvas>
             </div>
         </div>
-        
+
         <div id="preview">
             <fieldset>
                 <legend>Preview</legend>
@@ -114,11 +123,11 @@
                 </label>
             </fieldset>
         </div>
-        
+
         <input id="loadFile" type="file">
-        
+
     </div>
-    
+
     <div id="alertDialog" class="dialog">
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
@@ -126,7 +135,7 @@
             <p id="alertMessage"></p>
         </div>
     </div>
-    
+
     <div id="exportMenu" class="dialog">
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
@@ -136,7 +145,7 @@
             </ul>
         </div>
     </div>
-    
+
     <div id="ajaxDialog" class="dialog">
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
@@ -147,7 +156,7 @@
             </form>
         </div>
     </div>
-    
+
     <div id="saveLoadDialog" class="dialog">
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
@@ -162,7 +171,7 @@
             You can also manage above text data yourself.
         </div>
     </div>
-    
+
     <div id="exportTextDialog" class="dialog">
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
@@ -172,7 +181,7 @@
             <textarea id="exportTextArea" cols="40" rows="10" readonly="readonly"></textarea>
         </div>
     </div>
-    
+
     <div id="exportImageDialog" class="dialog">
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
@@ -182,7 +191,7 @@
             <img id="exportImageMain">
         </div>
     </div>
-    
+
     <div id="importImageDialog" class="dialog">
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
@@ -202,6 +211,7 @@
             <canvas id="importImageCanvas"></canvas>
         </div>
     </div>
-    
+
 </body>
+
 </html>

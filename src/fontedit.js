@@ -11,8 +11,7 @@ let app;
 
 document.addEventListener('DOMContentLoaded', () => {
     app = new FontEdit();
-    if (location.hash.startsWith('#https://'))
-    {
+    if (location.hash.startsWith('#https://')) {
         app.loadAjax(location.hash.slice(1), () => {
             location.hash = '';
         });
@@ -26,13 +25,13 @@ class FontEdit {
     static get LS_PREVIEW_KEY() { return "jp.nerry.fedit.pr"; }
     static get MIN_UNICHAR() { return 0x20 }
     static get MAX_UNICHAR() { return 0x7F }
-    
+
     constructor() {
         this.currentEditCode = 0x41;
         this.fontDriver = new FontDriver();
         this.mainCanvas = new GlyphEditor('#mainCanvas');
         this.bgDimmingCount = 0;
-        
+
         // Migrate old workspace
         if (localStorage.getItem(FontEdit.LS_OLD_WORKSPACE_KEY)) {
             localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, localStorage.getItem(FontEdit.LS_OLD_WORKSPACE_KEY));
@@ -40,16 +39,16 @@ class FontEdit {
         }
 
         $('#previewText').value = localStorage.getItem(FontEdit.LS_PREVIEW_KEY) ||
-        [
-            "The quick brown fox jumps over the lazy dog.",
-            "ETAOIN SHRDLU CMFWYP VBGKQJ XZ 1234567890",
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-        ].join('\n');
+            [
+                "The quick brown fox jumps over the lazy dog.",
+                "ETAOIN SHRDLU CMFWYP VBGKQJ XZ 1234567890",
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            ].join('\n');
         this.loadData(localStorage.getItem(FontEdit.LS_WORKSPACE_KEY) || "Rk9OVFgyICAgICAgICAIEAA=", false);
-        
+
         $('#fontWidth').addEventListener('input', () => this.resizeDOM());
         $('#fontHeight').addEventListener('input', () => this.resizeDOM());
-        
+
         $('#glyphChar').addEventListener('input', () => {
             const c = $('#glyphChar').value;
             if (c.length > 0) {
@@ -57,7 +56,7 @@ class FontEdit {
                 this.refreshGlyphSelector();
             }
         });
-        
+
         $('#glyphCode').addEventListener('input', () => {
             const c = parseInt($('#glyphCode').value, 16);
             if (c > 0) {
@@ -65,7 +64,7 @@ class FontEdit {
                 this.refreshGlyphSelector();
             }
         });
-        
+
         $('#glyphLt').addEventListener('click', () => {
             if (this.currentEditCode > FontEdit.MIN_UNICHAR) {
                 this.currentEditCode--;
@@ -76,7 +75,7 @@ class FontEdit {
             this.currentEditCode++;
             this.refreshGlyphSelector();
         });
-        
+
         $('#clearButton').addEventListener('click', () => this.mainCanvas.clear());
         $('#reverseButton').addEventListener('click', () => this.mainCanvas.reverse());
         $('#shiftLButton').addEventListener('click', () => this.mainCanvas.shiftL());
@@ -87,19 +86,19 @@ class FontEdit {
         $('#redoButton').addEventListener('click', () => this.mainCanvas.redo());
         $('#yankButton').addEventListener('click', () => this.mainCanvas.yank());
         $('#pasteButton').addEventListener('click', () => this.mainCanvas.paste());
-        
+
         $('#applyButton').addEventListener('click', () => {
             this.fontDriver.setGlyph(this.currentEditCode, this.mainCanvas.glyph);
             this.refreshPreview();
             localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontDriver.export());
         });
-        
+
         $('#importButton').addEventListener('click', () => {
             if (this.loadData($('#base64Console').value)) {
                 new SaveLoadDialog().dismiss()
             }
         });
-        
+
         $('#ajaxForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const url = $('#urlInputField').value;
@@ -108,18 +107,18 @@ class FontEdit {
                 Dialog.dismissTop();
             });
         }, false);
-        
+
         $('#previewText').addEventListener('input', () => this.refreshPreview());
-        
+
         $('#previewText').addEventListener('change', () => {
             localStorage.setItem(FontEdit.LS_PREVIEW_KEY, $('#previewText').value);
         })
-        
+
         $('#saveLoadButton').addEventListener('click', () => {
             $('#base64Console').value = this.fontDriver.export();
             new SaveLoadDialog().show()
         })
-        
+
         $('#ajaxDialogButton').addEventListener('click', () => {
             new SaveLoadDialog().dismiss();
             new AjaxDialog().show();
@@ -128,11 +127,11 @@ class FontEdit {
             new SaveLoadDialog().dismiss();
             new ExportDialog().show();
         });
-        
+
         $('#fontName').addEventListener('input', () => {
             this.fontDriver.fontName = $('#fontName').value;
         })
-        
+
         $('html').addEventListener('dragover', (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -141,7 +140,7 @@ class FontEdit {
                 this.dimWindow(1);
             }
         }, false);
-        
+
         $('html').addEventListener('dragleave', (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -150,7 +149,7 @@ class FontEdit {
                 this.dimWindow(-1);
             }
         }, false);
-        
+
         $('html').addEventListener('drop', (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -164,9 +163,9 @@ class FontEdit {
             });
             reader.readAsBinaryString(e.dataTransfer.files[0]);
         }, false);
-        
+
         $('#loadButton').addEventListener('click', () => $('#loadFile').click(), false);
-        
+
         $('#loadFile').addEventListener('change', (e) => {
             const reader = new FileReader();
             reader.addEventListener('load', (e) => {
@@ -176,7 +175,7 @@ class FontEdit {
             });
             reader.readAsBinaryString(e.target.files[0]);
         }, false);
-        
+
         $('#exportImageButton').addEventListener('click', () => {
             const canvas = document.createElement('canvas')
             this.fontDriver.exportImage(canvas, 16)
@@ -184,24 +183,24 @@ class FontEdit {
             const img = $('#exportImageMain')
             img.src = canvas.toDataURL('image/png')
         })
-        
+
         $('#saveExportImageButton').addEventListener('click', () => {
             const tag = document.createElement('a')
             tag.href = $('#exportImageMain').src
             tag.download = (this.fontDriver.fontName || 'font').toLowerCase() + '.png'
             tag.click()
         })
-        
+
         $('#importImageWidth').addEventListener('input', () => this.resizeImport(), false)
         $('#importImageHeight').addEventListener('input', () => this.resizeImport(), false)
         $('#importImageOffsetX').addEventListener('input', () => this.resizeImport(), false)
         $('#importImageOffsetY').addEventListener('input', () => this.resizeImport(), false)
-        
+
         $('#importImageButton').addEventListener('click', () => {
             this.setFontDriver(this.importFont)
             new ImportImageDialog().dismiss()
         }, false)
-        
+
         const base64_to_buffer = (base64) => {
             const str = atob(base64)
             const array = new ArrayBuffer(str.length)
@@ -211,13 +210,13 @@ class FontEdit {
             }
             return u8v
         }
-        
+
         $('#exportTextButton').addEventListener('click', () => {
             let blob;
             if (this.exportDriver.binary) {
-                blob = new Blob([base64_to_buffer($('#exportTextArea').value)], {type: 'application/octet-stream'});
+                blob = new Blob([base64_to_buffer($('#exportTextArea').value)], { type: 'application/octet-stream' });
             } else {
-                blob = new Blob([$('#exportTextArea').value], {type: 'text/plain'});
+                blob = new Blob([$('#exportTextArea').value], { type: 'text/plain' });
             }
             const url = URL.createObjectURL(blob);
             const tag = document.createElement('a');
@@ -225,7 +224,7 @@ class FontEdit {
             tag.download = (this.fontDriver.fontName || 'font').toLowerCase() + this.exportDriver.extension;
             tag.click();
         })
-        
+
         const ph = $('#exportMenuPlaceholder');
         for (const provider in FontDriver.driverList) {
             const driver = FontDriver.driverList[provider];
@@ -243,26 +242,26 @@ class FontEdit {
             li.appendChild(a);
             ph.appendChild(li);
         }
-        
+
         document.querySelectorAll('#penToolGroup input[type=radio]').forEach(radio => {
             radio.addEventListener('change', () => {
                 this.mainCanvas.penStyle = parseInt($('#penToolGroup').pen.value)
             })
         });
-        
+
         document.querySelectorAll('.dialogCloseButton').forEach(button => {
             button.addEventListener('click', () => {
                 Dialog.dismissTop()
             })
         });
-        
+
         window.alert = (x) => {
             this.showMessage(x);
         }
-        
+
     }
-    
-    dimWindow (x = 1) {
+
+    dimWindow(x = 1) {
         this.bgDimmingCount += x;
         if (this.bgDimmingCount > 0) {
             $('#mainScreen').classList.add('blur');
@@ -270,16 +269,16 @@ class FontEdit {
             $('#mainScreen').classList.remove('blur');
         }
     }
-    
-    refreshGlyphSelector () {
+
+    refreshGlyphSelector() {
         if (this.currentEditCode > FontEdit.MAX_UNICHAR) this.currentEditCode = FontEdit.MAX_UNICHAR;
         $('#glyphCode').value = this.currentEditCode.toString(16);
         let c = String.fromCharCode(this.currentEditCode);
         $('#glyphChar').value = c;
         this.mainCanvas.loadGlyph(this.fontDriver.getGlyph(this.currentEditCode));
     }
-    
-    resizeDOM () {
+
+    resizeDOM() {
         const fontWidth = parseInt($('#fontWidth').value)
         const fontHeight = parseInt($('#fontHeight').value)
         if (!fontWidth || !fontHeight) return;
@@ -289,14 +288,14 @@ class FontEdit {
             $('#fontHeight').value = fontHeight
         }
     }
-    
-    refreshPreview () {
+
+    refreshPreview() {
         const str = $('#previewText').value;
         const canvas = $('#previewCanvas');
         canvas.setAttribute('height', $('#previewText').clientHeight);
         this.fontDriver.drawText(str, canvas)
     }
-    
+
     setFontDriver(fontDriver) {
         this.fontDriver = fontDriver
         this.mainCanvas.resize(this.fontDriver.fontWidth, this.fontDriver.fontHeight);
@@ -306,8 +305,8 @@ class FontEdit {
         this.refreshGlyphSelector();
         this.refreshPreview();
     }
-    
-    loadData (blob, save = true) {
+
+    loadData(blob, save = true) {
         let imageType = null;
         if (blob.startsWith('\x89PNG\x0D\x0A\x1A\x0A')) {
             imageType = 'image/png';
@@ -356,18 +355,18 @@ class FontEdit {
             return false;
         }
     }
-    
+
     resizeImport() {
         const fontWidth = parseInt($('#importImageWidth').value) || 0
         const fontHeight = parseInt($('#importImageHeight').value) || 0
         const offsetX = parseInt($('#importImageOffsetX').value) || 0
         const offsetY = parseInt($('#importImageOffsetY').value) || 0
         if (fontWidth == 0 || fontHeight == 0) return;
-        
+
         const canvas0 = this.importImgCanvas
         const ctx0 = canvas0.getContext('2d')
         const { width, height } = canvas0
-        
+
         const canvas1 = $('#importImageCanvas')
         canvas1.width = width + 1
         canvas1.height = height + 1
@@ -390,42 +389,42 @@ class FontEdit {
             ctx1.lineTo(offsetX + preferredWidth, offsetY + i * fontHeight)
             ctx1.stroke()
         }
-        
+
         this.importFont.importImage(canvas0, fontWidth, fontHeight, offsetX, offsetY)
-        
+
         const canvas2 = $('#importPreviewCanvas')
         canvas2.width = Math.max(256, this.importImgCanvas.width)
         canvas2.height = fontHeight
         this.importFont.drawText('ABCD abcd 1234', canvas2)
     }
-    
+
     loadAjax(url, onsuccess = undefined) {
-        this.showMessage('Loading...', {noTitle: true});
+        this.showMessage('Loading...', { noTitle: true });
         fetch(url)
-        .then(res => {
-            if (res.ok) {
-                return res.blob();
-            } else {
-                throw 'HTTP Error';
-            }
-        })
-        .then(blob => {
-            Dialog.dismissTop();
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const success = this.loadData(reader.result);
-                if (success && onsuccess) {
-                    onsuccess();
+            .then(res => {
+                if (res.ok) {
+                    return res.blob();
+                } else {
+                    throw 'HTTP Error';
                 }
-            }
-            reader.readAsBinaryString(blob);
-        })
-        .catch(err => {
-            Dialog.dismissTop();
-            alert(err);
-        });
+            })
+            .then(blob => {
+                Dialog.dismissTop();
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const success = this.loadData(reader.result);
+                    if (success && onsuccess) {
+                        onsuccess();
+                    }
+                }
+                reader.readAsBinaryString(blob);
+            })
+            .catch(err => {
+                Dialog.dismissTop();
+                alert(err);
+            });
     }
-    
+
     showMessage(message, options = {}) {
         new AlertDialog(message, options).show();
     }
@@ -433,29 +432,29 @@ class FontEdit {
 
 
 class Dialog {
-    constructor (selector) {
+    constructor(selector) {
         this.selector = selector
         this.element = $(selector)
     }
-    
-    onclose () {}
-    
-    show () {
+
+    onclose() { }
+
+    show() {
         Dialog.show(this)
     }
-    dismiss () {
+    dismiss() {
         Dialog.dismiss(this)
     }
-    static show (dialog) {
+    static show(dialog) {
         if (dialog.element.style.display === 'block') return;
         app.dimWindow(1);
-        
+
         if (Dialog._stack.length == 0) Dialog._lastIndex = 100;
         Dialog._stack.push(dialog)
         dialog.element.style.zIndex = (++Dialog._lastIndex)
         dialog.element.style.display = 'block';
     }
-    static dismiss (dialog) {
+    static dismiss(dialog) {
         Dialog._stack = Dialog._stack.filter(value => {
             if (value.selector === dialog.selector) {
                 this.close(value)
@@ -465,12 +464,12 @@ class Dialog {
             }
         })
     }
-    static dismissAll () {
+    static dismissAll() {
         while (Dialog._stack.length > 0) {
             this.dismissTop()
         }
     }
-    static dismissTop () {
+    static dismissTop() {
         if (Dialog._stack.length > 0) {
             this.close(Dialog._stack.pop())
         }
@@ -486,7 +485,7 @@ Dialog._stack = [];
 
 
 class AlertDialog extends Dialog {
-    constructor (message, options) {
+    constructor(message, options) {
         super('#alertDialog');
         const title = options.title || '';
         if (options.noTitle) {
@@ -503,44 +502,44 @@ class AlertDialog extends Dialog {
 
 
 class ExportDialog extends Dialog {
-    constructor () {
+    constructor() {
         super('#exportMenu');
     }
 }
 
 class SaveLoadDialog extends Dialog {
-    constructor () {
+    constructor() {
         super('#saveLoadDialog');
     }
 }
 
 class ExportTextDialog extends Dialog {
-    constructor () {
+    constructor() {
         super('#exportTextDialog');
     }
-    onclose () {
+    onclose() {
         this.exportDriver = null;
     }
 }
 
 class ExportImageDialog extends Dialog {
-    constructor () {
+    constructor() {
         super('#exportImageDialog');
     }
 }
 
 class ImportImageDialog extends Dialog {
-    constructor () {
+    constructor() {
         super('#importImageDialog');
     }
-    onclose () {
+    onclose() {
         app.importFont = null;
         app.importImgCanvas = null;
     }
 }
 
 class AjaxDialog extends Dialog {
-    constructor () {
+    constructor() {
         super('#ajaxDialog');
     }
 }
@@ -553,7 +552,7 @@ class GlyphEditor {
         this.glyph = new GlyphModel();
         this.penStyle = -1;
         this.resetCheckPoint();
-        
+
         this.canvas.addEventListener('mousedown', (e) => {
             this.mouseDown = true;
             const { ex, ey } = this.convertMouseEvent(e);
@@ -578,7 +577,7 @@ class GlyphEditor {
             e.preventDefault();
             e.stopPropagation();
         }, false);
-        
+
         this.canvas.addEventListener('touchstart', (e) => {
             const { ex, ey } = this.convertTouchEvent(e);
             this.currentColor = this.penStyle < 0 ? !this.getPixel(ex, ey) : this.penStyle
@@ -597,25 +596,24 @@ class GlyphEditor {
         this.canvas.addEventListener('touchcancel', (e) => {
             e.preventDefault();
         }, false);
-        
+
     }
     convertMouseEvent(e) {
         const tr = e.target.getBoundingClientRect();
         const ex = ((e.clientX - tr.left - this.margin) / this.scale) | 0;
         const ey = ((e.clientY - tr.top - this.margin) / this.scale) | 0;
-        return {ex, ey};
+        return { ex, ey };
     }
     convertTouchEvent(e) {
         const tr = e.target.getBoundingClientRect();
         const t = e.touches[0];
         const ex = (((t.clientX - tr.left - this.margin)) / this.scale) | 0;
         const ey = (((t.clientY - tr.top - this.margin)) / this.scale) | 0;
-        return {ex, ey};
+        return { ex, ey };
     }
     resize(width, height) {
-        if (width > 0 && width <= GlyphModel.MAX_WIDTH && height > 0 && height <= GlyphModel.MAX_HEIGHT)
-        {} else return false;
-        
+        if (width > 0 && width <= GlyphModel.MAX_WIDTH && height > 0 && height <= GlyphModel.MAX_HEIGHT) { } else return false;
+
         this.width = width;
         this.height = height;
         const long = Math.max(width, height);
@@ -742,7 +740,7 @@ class GlyphModel {
     static get MAX_WIDTH() { return 32 }
     static get MAX_HEIGHT() { return 32 }
     static get BIT_LEFT() { return 0x80000000 }
-    
+
     constructor(rawData = null) {
         if (rawData) {
             this.rawData = new Uint32Array(rawData);
@@ -816,64 +814,64 @@ class GlyphModel {
         }
         ctx.putImageData(imageData, x, y)
     }
-    
-    static get SERIALIZE_FONTX () { return 0; }
-    static get SERIALIZE_ARRAY () { return 1; }
-    static get SERIALIZE_B64A () { return 2; }
+
+    static get SERIALIZE_FONTX() { return 0; }
+    static get SERIALIZE_ARRAY() { return 1; }
+    static get SERIALIZE_B64A() { return 2; }
     static deserialize(blob, width, height, type = 0) {
         let data = new Uint32Array(this.MAX_HEIGHT);
         const w8 = Math.floor((width + 7) / 8);
         switch (type) {
-        case this.SERIALIZE_ARRAY:
-            for (let i = 0; i < height; i++) {
-                let rawValue = 0;
-                for (let j = 0; j < w8; j++) {
-                    const byte = blob[i * w8 + j];
-                    rawValue |= (byte << (24 - j * 8));
+            case this.SERIALIZE_ARRAY:
+                for (let i = 0; i < height; i++) {
+                    let rawValue = 0;
+                    for (let j = 0; j < w8; j++) {
+                        const byte = blob[i * w8 + j];
+                        rawValue |= (byte << (24 - j * 8));
+                    }
+                    data[i] = rawValue;
                 }
-                data[i] = rawValue;
-            }
-            break;
-        default:
-            for (let i = 0; i < height; i++) {
-                let rawValue = 0;
-                for (let j = 0; j < w8; j++) {
-                    const byte = blob.charCodeAt(i * w8 + j);
-                    rawValue |= (byte << (24 - j * 8));
+                break;
+            default:
+                for (let i = 0; i < height; i++) {
+                    let rawValue = 0;
+                    for (let j = 0; j < w8; j++) {
+                        const byte = blob.charCodeAt(i * w8 + j);
+                        rawValue |= (byte << (24 - j * 8));
+                    }
+                    data[i] = rawValue;
                 }
-                data[i] = rawValue;
-            }
         }
         return new GlyphModel(data)
     }
     serialize(width, height, type = 0) {
         let result = [];
         switch (type) {
-        case GlyphModel.SERIALIZE_B64A:
-            const w6 = Math.floor((width + 5) / 6);
-            for (let i = 0; i < height; i++) {
-                const rawData = this.rawData[i] || 0;
-                for (let j = 0; j < w6; j++) {
-                    const byte = (rawData >>> (26 - j * 6)) & 0x3F;
-                    result.push(byte);
+            case GlyphModel.SERIALIZE_B64A:
+                const w6 = Math.floor((width + 5) / 6);
+                for (let i = 0; i < height; i++) {
+                    const rawData = this.rawData[i] || 0;
+                    for (let j = 0; j < w6; j++) {
+                        const byte = (rawData >>> (26 - j * 6)) & 0x3F;
+                        result.push(byte);
+                    }
                 }
-            }
-            return result;
-        default:
-            const w8 = Math.floor((width + 7) / 8);
-            for (let i = 0; i < height; i++) {
-                const rawData = this.rawData[i] || 0;
-                for (let j = 0; j < w8; j++) {
-                    const byte = (rawData >>> (24 - j * 8)) & 0xFF;
-                    result.push(byte);
-                }
-            }
-            switch (type) {
-                case GlyphModel.SERIALIZE_ARRAY:
                 return result;
             default:
-                return String.fromCharCode.apply(String, result);
-            }
+                const w8 = Math.floor((width + 7) / 8);
+                for (let i = 0; i < height; i++) {
+                    const rawData = this.rawData[i] || 0;
+                    for (let j = 0; j < w8; j++) {
+                        const byte = (rawData >>> (24 - j * 8)) & 0xFF;
+                        result.push(byte);
+                    }
+                }
+                switch (type) {
+                    case GlyphModel.SERIALIZE_ARRAY:
+                        return result;
+                    default:
+                        return String.fromCharCode.apply(String, result);
+                }
         }
     }
 }
@@ -900,7 +898,7 @@ class FontDriver {
         }, '');
         return (result + '        ').slice(0, 8);
     }
-    
+
     static get driverList() {
         if (!FontDriver._driverList) {
             FontDriver._driverList = {};
@@ -929,7 +927,7 @@ class FontDriver {
         if (!def.export) throw `PROVIDER ${provider}: CANNOT EXPORT`;
         return def.export.call(this);
     }
-    
+
     getGlyph(code) {
         return this.data[code] || new GlyphModel();
     }
@@ -948,29 +946,29 @@ class FontDriver {
         let cursorX = x, cursorY = y
         const maxWidth = w || canvas.width
         const maxHeight = h || canvas.height
-        const {fontWidth, fontHeight} = this
+        const { fontWidth, fontHeight } = this
         const ctx = canvas.getContext('2d');
-        
+
         ctx.clearRect(0, 0, maxWidth, maxHeight);
         for (let i = 0; i < str.length; i++) {
             const char = str.charCodeAt(i);
             switch (char) {
                 case 0x0A: // LF
-                cursorX = 0;
-                cursorY += fontHeight;
-                break;
-                default:
-                if (cursorX + fontWidth > maxWidth) {
                     cursorX = 0;
                     cursorY += fontHeight;
-                }
-                this.drawChar(char, ctx, cursorX, cursorY, color)
-                cursorX += fontWidth;
+                    break;
+                default:
+                    if (cursorX + fontWidth > maxWidth) {
+                        cursorX = 0;
+                        cursorY += fontHeight;
+                    }
+                    this.drawChar(char, ctx, cursorX, cursorY, color)
+                    cursorX += fontWidth;
             }
             if (cursorY >= maxHeight) break;
         }
     }
-    
+
     exportImage(canvas, cols) {
         const { fontWidth, fontHeight } = this;
         const ctx = canvas.getContext('2d');
@@ -1022,15 +1020,15 @@ class FontDriver {
             this.data[baseChar + i] = glyph;
         }
     }
-    
+
 }
 
 
 // FONTX2 Driver
-(function(){
+(function () {
     FontDriver.register('FONTX2', {
         extension: '.fnt', binary: true,
-        import: function(blob) {
+        import: function (blob) {
             if (blob.startsWith('Rk9OVFgy')) {
                 blob = atob(blob);
             } else if (!blob.startsWith('FONTX2')) {
@@ -1040,8 +1038,7 @@ class FontDriver {
             const fontWidth = blob.charCodeAt(14);
             const fontHeight = blob.charCodeAt(15);
             const type = blob.charCodeAt(16);
-            if (type == 0 || fontWidth > 0 || fontWidth <= GlyphModel.MAX_WIDTH || fontHeight > 0 || fontHeight <= GlyphModel.MAX_HEIGHT)
-            {} else return false;
+            if (type == 0 || fontWidth > 0 || fontWidth <= GlyphModel.MAX_WIDTH || fontHeight > 0 || fontHeight <= GlyphModel.MAX_HEIGHT) { } else return false;
             this.beginImport(fontWidth, fontHeight, fontName);
             const w8 = Math.floor((fontWidth + 7) / 8);
             const fontSize = w8 * fontHeight;
@@ -1051,7 +1048,7 @@ class FontDriver {
             }
             return true;
         },
-        export: function() {
+        export: function () {
             let output = [];
             let header = ["FONTX2"];
             header.push(this.validateFontName());
@@ -1069,12 +1066,12 @@ class FontDriver {
 
 
 // Export C Header
-(function(){
+(function () {
     const toHex = (v, l) => `0x${('00000000' + v.toString(16)).slice(-l)}`;
     const validateFontName = (n) => (n || '').trim().replace(/\W/g, '_');
     FontDriver.register('C Header File', {
         extension: '.h', binary: false,
-        export: function() {
+        export: function () {
             const { fontWidth, fontHeight } = this;
             const fontName = validateFontName(this.fontName) || 'font';
             let output = [];
@@ -1102,41 +1099,41 @@ class FontDriver {
 
 
 // Import haribote os hankaku.txt
-(function(){
+(function () {
     class IStream {
-        constructor (blob) {
+        constructor(blob) {
             this.blob = blob;
             this.fp = 0;
         }
-        getchar () {
+        getchar() {
             return this.blob[this.fp++];
         }
-        gets () {
+        gets() {
             let buffer = [];
             let cont = true;
             while (!this.isEOF && cont) {
                 let c = this.getchar();
                 if (c && c.length) {
                     switch (c) {
-                    case '\r':
-                        break;
-                    case '\n':
-                        cont = false;
-                        break;
-                    default:
-                        buffer.push(c);
-                        break;
+                        case '\r':
+                            break;
+                        case '\n':
+                            cont = false;
+                            break;
+                        default:
+                            buffer.push(c);
+                            break;
                     }
                 }
             }
             return buffer.join('');
         }
-        get isEOF () {
+        get isEOF() {
             return !(this.blob.length > this.fp);
         }
     }
     FontDriver.register('hankaku.txt', {
-        import: function(blob) {
+        import: function (blob) {
             if (blob.indexOf('\0') >= 0) return false;
             const fontWidth = 8, fontHeight = 16, fontName = 'hankaku';
             const expectedMinCount = fontHeight * 128;
