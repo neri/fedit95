@@ -19,6 +19,7 @@ Bitmap Font Editor
 |PNG| ☑️ | ☑️ |Up to 512 x 256, The font size is detected when image width is a multiple of 16 and image height is a multiple of 6 or 8.|
 |hankaku.txt| ☑️ ||Haribote OS|
 |C Header|| ☑️ ||
+|Rust|| ☑️ ||
 
 ## License
 
