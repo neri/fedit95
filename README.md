@@ -2,7 +2,7 @@
 
 Bitmap Font Editor
 
-- [Launch now](https://nerry.jp/fedit95/src/)
+- [Launch now](https://nerry.jp/fedit95/)
 - [Repository](https://github.com/neri/fedit95/)
 
 ## Supported Environment
