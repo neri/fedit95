@@ -4,19 +4,16 @@
   "description": "Bitmap Font Editor",
   "main": "src/main.js",
   "scripts": {
-    "build": "electron-packager src fedit95 --platform=darwin --arch=x64 --overwrite",
-    "build-win32": "electron-packager src fedit95 --platform=win32 --arch=all --overwrite",
+    "dev": "vite",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "Nerry",
   "license": "GPL",
   "devDependencies": {
-    "electron": "^7.2.4"
+    "vite": "latest"
   },
-  "dependencies": {
-    "electron-packager": "^13.1.1"
-  },
+  "dependencies": {},
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/neri/fedit95.git"

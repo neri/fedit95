@@ -7,7 +7,6 @@ Bitmap Font Editor
 
 ## Supported Environment
 
-- Electron
 - Safari
 - Chromium
 

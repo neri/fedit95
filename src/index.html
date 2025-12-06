@@ -7,14 +7,14 @@
     <meta name="description" content="Bitmap Font Editor">
     <link rel="stylesheet" href="style.css">
     <script src="fontedit.js"></script>
-    <title>Font Edit '95</title>
+    <title>Font Edit</title>
 </head>
 
 <body>
 
     <header>
         <nav>
-            <a class="button" style="float: right;" href="https://github.com/neri/fedit95" target="_blank">Open in
+            <a class="button" style="float: right;" href="https://github.com/neri/fedit95" target="_blank">☁️ Open in
                 GitHub</a>
             :: Font Edit ::
             <a id="saveLoadButton" class="button" title="">&#x1F4BE; Save/Load</a>
@@ -26,7 +26,7 @@
         <aside id="toolBox0">
             <div id="toolBox1">
                 <details open="open">
-                    <summary>Glyph Selector</summary>
+                    <summary>Glyph</summary>
                     <ul>
                         <li>
                             <label>Char: <input id="glyphChar" type="text" size="2" placeholder="X"></label>
@@ -41,40 +41,105 @@
                     </ul>
                 </details>
                 <details open="open">
-                    <summary>General Info</summary>
+                    <summary>Font Info</summary>
                     <ul>
                         <li>
                             <label>Name: <input id="fontName" type="text" maxlength="8" placeholder="FONTNAME"
                                     style="width: 8em;"></label>
                         </li>
                         <li>
-                            <label>Width: <input id="fontWidth" type="number" min="1" value="8"
-                                    style="width: 3em;"></label>
+                            <label>Width:
+                                <select id="fontWidth">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8" selected="selected">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                    <option value="13">13</option>
+                                    <option value="14">14</option>
+                                    <option value="15">15</option>
+                                    <option value="16">16</option>
+                                    <option value="17">17</option>
+                                    <option value="18">18</option>
+                                    <option value="19">19</option>
+                                    <option value="20">20</option>
+                                    <option value="21">21</option>
+                                    <option value="22">22</option>
+                                    <option value="23">23</option>
+                                    <option value="24">24</option>
+                                    <option value="25">25</option>
+                                    <option value="26">26</option>
+                                    <option value="27">27</option>
+                                    <option value="28">28</option>
+                                    <option value="29">29</option>
+                                    <option value="30">30</option>
+                                    <option value="31">31</option>
+                                    <option value="32">32</option>
+                                </select>
+                            </label>
                         </li>
                         <li>
-                            <label>Height: <input id="fontHeight" type="number" min="1" value="16"
-                                    style="width: 3em;"></label>
-                        </li>
-                        <li>
-                            <label><input type="checkbox" checked="checked" disabled="disabled">ASCII Font</label>
+                            <label>Height:
+                                <select id="fontHeight">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                    <option value="13">13</option>
+                                    <option value="14">14</option>
+                                    <option value="15">15</option>
+                                    <option value="16" selected="selected">16</option>
+                                    <option value="17">17</option>
+                                    <option value="18">18</option>
+                                    <option value="19">19</option>
+                                    <option value="20">20</option>
+                                    <option value="21">21</option>
+                                    <option value="22">22</option>
+                                    <option value="23">23</option>
+                                    <option value="24">24</option>
+                                    <option value="25">25</option>
+                                    <option value="26">26</option>
+                                    <option value="27">27</option>
+                                    <option value="28">28</option>
+                                    <option value="29">29</option>
+                                    <option value="30">30</option>
+                                    <option value="31">31</option>
+                                    <option value="32">32</option>
+                                </select>
+                            </label>
                         </li>
                     </ul>
                 </details>
             </div>
             <div id="toolBox2">
                 <details open="open">
-                    <summary>Tools</summary>
+                    <summary>Drawing Tools</summary>
                     <ul>
                         <li>
                             <a id="applyButton" class="buttonActive">Apply</a>
                             <a id="clearButton" class="buttonDestructive">Clear</a>
                         </li>
                         <li>
-                            <a id="undoButton" class="button">Undo</a> /
+                            <a id="undoButton" class="button">Undo</a>
                             <a id="redoButton" class="button">Redo</a>
                         </li>
                         <li>
-                            <a id="yankButton" class="button">Yank</a> /
+                            <a id="yankButton" class="button">Yank</a>
                             <a id="pasteButton" class="button">Paste</a>
                         </li>
                         <li>
@@ -121,10 +186,49 @@
                     <canvas id="previewCanvas" width="280"></canvas>
                     <textarea id="previewText"></textarea>
                 </label>
+
+                <br>
+                <label>Extra Line Spacing: <select id="previewExtraHeight">
+                        <option value="0" selected="selected">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                        <option value="14">14</option>
+                        <option value="15">15</option>
+                        <option value="16">16</option>
+                        <option value="17">17</option>
+                        <option value="18">18</option>
+                        <option value="19">19</option>
+                        <option value="20">20</option>
+                        <option value="21">21</option>
+                        <option value="22">22</option>
+                        <option value="23">23</option>
+                        <option value="24">24</option>
+                        <option value="25">25</option>
+                        <option value="26">26</option>
+                        <option value="27">27</option>
+                        <option value="28">28</option>
+                        <option value="29">29</option>
+                        <option value="30">30</option>
+                        <option value="31">31</option>
+                        <option value="32">32</option>
+                    </select>
+                </label>
+
             </fieldset>
         </div>
 
-        <input id="loadFile" type="file">
+        <input id="loadFile" type="file" style="display: none;">
 
     </div>
 
@@ -161,14 +265,14 @@
         <div class="dialogInner">
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
             <h2>&#x1F4BE; Save / Load</h2>
-            <a id="importButton" class="buttonActive">Load</a>
             <a id="loadButton" class="button">Open</a>
             <a id="ajaxDialogButton" class="button" title="Web">Web</a>
             <a id="exportMenuButton" class="button" title="Export">Export</a>
-            <br>
+            <hr>
+            <a id="importButton" class="buttonActive">Load from Text Data</a><br>
             <textarea id="base64Console" cols="40" rows="5" placeholder="base64:"></textarea>
             <br>
-            You can also manage above text data yourself.
+            You can also manage this text data yourself.
         </div>
     </div>
 
@@ -197,18 +301,85 @@
             <a class="buttonDestructive dialogCloseButton">&#x2715;</a>
             <h2>&#x1F4F7; Import from Image</h2>
             <a id="importImageButton" class="buttonActive">Import</a>
-            <label>Width: <input id="importImageWidth" type="number" min="1" style="width: 3em;" value="8"></label>
-            <label>Height: <input id="importImageHeight" type="number" min="1" style="width: 3em;" value="16"></label>
-            <br>
-            <label>Offset X: <input id="importImageOffsetX" type="number" min="0" style="width: 3em;"></label>
-            <label>Offset Y: <input id="importImageOffsetY" type="number" min="0" style="width: 3em;"></label>
-            <br>
-            <label>
-                Preview:
-                <canvas id="importPreviewCanvas"></canvas>
+            <label>Width: <select id="importImageWidth">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                    <option value="32">32</option>
+                </select>
             </label>
-            <br>
-            <canvas id="importImageCanvas"></canvas>
+            <label>Height: <select id="importImageHeight">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                    <option value="32">32</option>
+                </select>
+                <br>
+                <label>Offset X: <input id="importImageOffsetX" type="number" min="0" style="width: 3em;"></label>
+                <label>Offset Y: <input id="importImageOffsetY" type="number" min="0" style="width: 3em;"></label>
+                <br>
+                <label>
+                    Preview:
+                    <canvas id="importPreviewCanvas"></canvas>
+                </label>
+                <br>
+                <canvas id="importImageCanvas"></canvas>
         </div>
     </div>
 

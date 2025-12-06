@@ -1,8 +1,16 @@
+:root {
+    --reverse-tint: #EEEEEE;
+    --tint-color: #009688;
+    --border-color: #BDBDBD;
+    --button-face: #E0E0E0;
+    --button-text: #424242;
+    --active-color: #2196F3;
+}
 
 html {
     background: #F5F5F5;
     color: #757575;
-	font: 10pt "ヒラギノ丸ゴ Pro", "ヒラギノ丸ゴ Pro W4", "HiraMaruPro-W4", "HiraKakuProN-W3", sans-serif;
+    font: 10pt "ヒラギノ丸ゴ Pro", "ヒラギノ丸ゴ Pro W4", "HiraMaruPro-W4", "HiraKakuProN-W3", sans-serif;
     -webkit-user-select: none;
 }
 
@@ -19,8 +27,8 @@ header {
     top: 0;
     width: 100%;
     min-height: 32px;
-    background: linear-gradient(90deg, #009688, #E0E0E0);
-    color: #EEEEEE;
+    background: var(--tint-color);
+    color: var(--reverse-tint);
     box-shadow: 1px 1px 4px 2px rgba(0, 0, 0, 0.25);
     z-index: 1;
 }
@@ -30,20 +38,24 @@ header {
         width: 460px;
     }
 }
+
 @media screen and (min-width:600px) {
     #mainScreen {
         width: 600px;
     }
 }
+
 #mainScreen {
-    margin-top: 36px;
+    margin-top: 40px;
 }
 
 fieldset {
     border: #E0E0E0 dashed 1px;
 }
 
-.button, .buttonActive, .buttonDestructive {
+.button,
+.buttonActive,
+.buttonDestructive {
     display: inline-block;
     margin: 4px 2px;
     padding: 1px 8px;
@@ -54,17 +66,25 @@ fieldset {
     -webkit-app-region: no-drag;
 }
 
-.dialog .button, .dialog .buttonActive, .dialog .buttonDestructive {
+.button,
+.buttonActive,
+.buttonDestructive {
     border: rgba(0, 0, 0, 0.25) solid 1px;
 }
 
-.button:hover, .buttonActive:hover, .buttonDestructive:hover {
-    box-shadow: 1px 1px 2px 2px rgba(0, 0, 0, 0.125);
+header .button {
+    border: none;
+}
+
+.button:hover,
+.buttonActive:hover {
+    border-color: var(--active-color);
+    background: #FFF;
 }
 
 .button {
-    background: #E0E0E0;
-    color: #424242;
+    background: var(--button-face);
+    color: var(--button-text);
 }
 
 .button[disabled] {
@@ -75,22 +95,41 @@ fieldset {
 }
 
 .buttonActive {
-    background: #2196F3;
+    background: var(--active-color);
     color: #FFF;
 }
 
+.buttonActive:hover {
+    color: var(--active-color);
+}
 
 .buttonDestructive {
-    background: #f44336;
     color: #FFF;
+    background: #f44336;
+    border-color: #f44336;
 }
 
-input[type="text"], input[type="number"],textarea {
+.buttonDestructive:hover {
+    background: #FFF;
+    color: #f44336;
+}
+
+input[type="text"],
+input[type="number"],
+textarea {
     background: #FFFFFF;
-    border: #E0E0E0 solid 1px;
+    border: var(--border-color) solid 1px;
 }
 
-input[type="text"], input[type="number"] {
+input[type="text"]:hover,
+input[type="number"]:hover,
+select:hover,
+textarea:hover {
+    border-color: var(--active-color);
+}
+
+input[type="text"],
+input[type="number"] {
     font: 10pt Menlo, "DejaVu Sans Mono", Consolas, "Lucida Console", monospace;
 }
 
@@ -116,7 +155,8 @@ li {
     list-style: none;
 }
 
-#toolBox1, #toolBox2 {
+#toolBox1,
+#toolBox2 {
     width: 152px;
     padding: 0 4px;
 }
@@ -126,13 +166,16 @@ li {
         float: right;
     }
 }
+
 @media screen and (min-width:600px) {
     #editor {
         margin-left: 160px;
     }
+
     #toolBox1 {
         float: left;
     }
+
     #toolBox2 {
         float: right;
     }
@@ -146,23 +189,17 @@ li {
     clear: both;
 }
 
-input[type="file"] {
-    width: 1px;
-    height: 1px;
-}
-
 hr {
     margin: 4px 8px;
     padding: 0;
     border: none;
-    border-bottom: #AAA solid 1px;
+    border-bottom: var(--border-color) dashed 1px;
 }
 
 summary {
-    color: #424242;
-    background: #EEEEEE;
+    color: var(--reverse-tint);
+    background: var(--tint-color);
     font-weight: bold;
-    border-bottom: #9E9E9E solid 1px;
     padding: 0 8px;
 }
 
@@ -186,12 +223,13 @@ summary {
 
 #previewCanvas {
     background: #FFF;
+    border: var(--border-color) solid 1px;
 }
 
-#previewText, #previewCanvas {
+#previewText,
+#previewCanvas {
     margin: 0;
     padding: 0;
-    border: #E0E0E0 solid 1px;
     vertical-align: top;
 }
 

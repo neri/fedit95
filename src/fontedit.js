@@ -18,9 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-
 class FontEdit {
-    static get LS_OLD_WORKSPACE_KEY() { return "workSpace"; }
     static get LS_WORKSPACE_KEY() { return "jp.nerry.fedit.ws"; }
     static get LS_PREVIEW_KEY() { return "jp.nerry.fedit.pr"; }
     static get MIN_UNICHAR() { return 0x20 }
@@ -32,11 +30,7 @@ class FontEdit {
         this.mainCanvas = new GlyphEditor('#mainCanvas');
         this.bgDimmingCount = 0;
 
-        // Migrate old workspace
-        if (localStorage.getItem(FontEdit.LS_OLD_WORKSPACE_KEY)) {
-            localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, localStorage.getItem(FontEdit.LS_OLD_WORKSPACE_KEY));
-            localStorage.removeItem(FontEdit.LS_OLD_WORKSPACE_KEY);
-        }
+        $('body').addEventListener('mouseup', (e) => this.mainCanvas.mouseUp(), false);
 
         $('#previewText').value = localStorage.getItem(FontEdit.LS_PREVIEW_KEY) ||
             [
@@ -46,10 +40,14 @@ class FontEdit {
             ].join('\n');
         this.loadData(localStorage.getItem(FontEdit.LS_WORKSPACE_KEY) || "Rk9OVFgyICAgICAgICAIEAA=", false);
 
-        $('#fontWidth').addEventListener('input', () => this.resizeDOM());
-        $('#fontHeight').addEventListener('input', () => this.resizeDOM());
+        $('#fontWidth').addEventListener('input', (e) => this.resizeDOM());
+        $('#fontHeight').addEventListener('input', (e) => this.resizeDOM());
 
-        $('#glyphChar').addEventListener('input', () => {
+        $('#previewExtraHeight').addEventListener('input', (e) => {
+            this.refreshPreview();
+        });
+
+        $('#glyphChar').addEventListener('input', (e) => {
             const c = $('#glyphChar').value;
             if (c.length > 0) {
                 this.currentEditCode = c.slice(-1).charCodeAt(0);
@@ -57,7 +55,7 @@ class FontEdit {
             }
         });
 
-        $('#glyphCode').addEventListener('input', () => {
+        $('#glyphCode').addEventListener('input', (e) => {
             const c = parseInt($('#glyphCode').value, 16);
             if (c > 0) {
                 this.currentEditCode = c;
@@ -65,7 +63,7 @@ class FontEdit {
             }
         });
 
-        $('#glyphLt').addEventListener('click', () => {
+        $('#glyphLt').addEventListener('click', (e) => {
             if (this.currentEditCode > FontEdit.MIN_UNICHAR) {
                 this.currentEditCode--;
                 this.refreshGlyphSelector();
@@ -76,24 +74,23 @@ class FontEdit {
             this.refreshGlyphSelector();
         });
 
-        $('#clearButton').addEventListener('click', () => this.mainCanvas.clear());
-        $('#reverseButton').addEventListener('click', () => this.mainCanvas.reverse());
-        $('#shiftLButton').addEventListener('click', () => this.mainCanvas.shiftL());
-        $('#shiftRButton').addEventListener('click', () => this.mainCanvas.shiftR());
-        $('#shiftUButton').addEventListener('click', () => this.mainCanvas.shiftU());
-        $('#shiftDButton').addEventListener('click', () => this.mainCanvas.shiftD());
-        $('#undoButton').addEventListener('click', () => this.mainCanvas.undo());
-        $('#redoButton').addEventListener('click', () => this.mainCanvas.redo());
-        $('#yankButton').addEventListener('click', () => this.mainCanvas.yank());
-        $('#pasteButton').addEventListener('click', () => this.mainCanvas.paste());
-
-        $('#applyButton').addEventListener('click', () => {
+        $('#clearButton').addEventListener('click', (e) => this.mainCanvas.clear());
+        $('#reverseButton').addEventListener('click', (e) => this.mainCanvas.reverse());
+        $('#shiftLButton').addEventListener('click', (e) => this.mainCanvas.shiftL());
+        $('#shiftRButton').addEventListener('click', (e) => this.mainCanvas.shiftR());
+        $('#shiftUButton').addEventListener('click', (e) => this.mainCanvas.shiftU());
+        $('#shiftDButton').addEventListener('click', (e) => this.mainCanvas.shiftD());
+        $('#undoButton').addEventListener('click', (e) => this.mainCanvas.undo());
+        $('#redoButton').addEventListener('click', (e) => this.mainCanvas.redo());
+        $('#yankButton').addEventListener('click', (e) => this.mainCanvas.yank());
+        $('#pasteButton').addEventListener('click', (e) => this.mainCanvas.paste());
+        $('#applyButton').addEventListener('click', (e) => {
             this.fontDriver.setGlyph(this.currentEditCode, this.mainCanvas.glyph);
             this.refreshPreview();
             localStorage.setItem(FontEdit.LS_WORKSPACE_KEY, this.fontDriver.export());
         });
 
-        $('#importButton').addEventListener('click', () => {
+        $('#importButton').addEventListener('click', (e) => {
             if (this.loadData($('#base64Console').value)) {
                 new SaveLoadDialog().dismiss()
             }
@@ -108,27 +105,27 @@ class FontEdit {
             });
         }, false);
 
-        $('#previewText').addEventListener('input', () => this.refreshPreview());
+        $('#previewText').addEventListener('input', (e) => this.refreshPreview());
 
-        $('#previewText').addEventListener('change', () => {
+        $('#previewText').addEventListener('change', (e) => {
             localStorage.setItem(FontEdit.LS_PREVIEW_KEY, $('#previewText').value);
         })
 
-        $('#saveLoadButton').addEventListener('click', () => {
+        $('#saveLoadButton').addEventListener('click', (e) => {
             $('#base64Console').value = this.fontDriver.export();
             new SaveLoadDialog().show()
         })
 
-        $('#ajaxDialogButton').addEventListener('click', () => {
+        $('#ajaxDialogButton').addEventListener('click', (e) => {
             new SaveLoadDialog().dismiss();
             new AjaxDialog().show();
         });
-        $('#exportMenuButton').addEventListener('click', () => {
+        $('#exportMenuButton').addEventListener('click', (e) => {
             new SaveLoadDialog().dismiss();
             new ExportDialog().show();
         });
 
-        $('#fontName').addEventListener('input', () => {
+        $('#fontName').addEventListener('input', (e) => {
             this.fontDriver.fontName = $('#fontName').value;
         })
 
@@ -164,7 +161,7 @@ class FontEdit {
             reader.readAsBinaryString(e.dataTransfer.files[0]);
         }, false);
 
-        $('#loadButton').addEventListener('click', () => $('#loadFile').click(), false);
+        $('#loadButton').addEventListener('click', (e) => $('#loadFile').click(), false);
 
         $('#loadFile').addEventListener('change', (e) => {
             const reader = new FileReader();
@@ -176,7 +173,7 @@ class FontEdit {
             reader.readAsBinaryString(e.target.files[0]);
         }, false);
 
-        $('#exportImageButton').addEventListener('click', () => {
+        $('#exportImageButton').addEventListener('click', (e) => {
             const canvas = document.createElement('canvas')
             this.fontDriver.exportImage(canvas, 16)
             new ExportImageDialog().show()
@@ -184,7 +181,7 @@ class FontEdit {
             img.src = canvas.toDataURL('image/png')
         })
 
-        $('#saveExportImageButton').addEventListener('click', () => {
+        $('#saveExportImageButton').addEventListener('click', (e) => {
             const tag = document.createElement('a')
             tag.href = $('#exportImageMain').src
             tag.download = (this.fontDriver.fontName || 'font').toLowerCase() + '.png'
@@ -196,7 +193,7 @@ class FontEdit {
         $('#importImageOffsetX').addEventListener('input', () => this.resizeImport(), false)
         $('#importImageOffsetY').addEventListener('input', () => this.resizeImport(), false)
 
-        $('#importImageButton').addEventListener('click', () => {
+        $('#importImageButton').addEventListener('click', (e) => {
             this.setFontDriver(this.importFont)
             new ImportImageDialog().dismiss()
         }, false)
@@ -211,7 +208,7 @@ class FontEdit {
             return u8v
         }
 
-        $('#exportTextButton').addEventListener('click', () => {
+        $('#exportTextButton').addEventListener('click', (e) => {
             let blob;
             if (this.exportDriver.binary) {
                 blob = new Blob([base64_to_buffer($('#exportTextArea').value)], { type: 'application/octet-stream' });
@@ -244,13 +241,13 @@ class FontEdit {
         }
 
         document.querySelectorAll('#penToolGroup input[type=radio]').forEach(radio => {
-            radio.addEventListener('change', () => {
+            radio.addEventListener('change', (e) => {
                 this.mainCanvas.penStyle = parseInt($('#penToolGroup').pen.value)
             })
         });
 
         document.querySelectorAll('.dialogCloseButton').forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', (e) => {
                 Dialog.dismissTop()
             })
         });
@@ -292,8 +289,9 @@ class FontEdit {
     refreshPreview() {
         const str = $('#previewText').value;
         const canvas = $('#previewCanvas');
+        const extra_height = parseInt($('#previewExtraHeight').value) || 0;
         canvas.setAttribute('height', $('#previewText').clientHeight);
-        this.fontDriver.drawText(str, canvas)
+        this.fontDriver.drawText(str, canvas, extra_height);
     }
 
     setFontDriver(fontDriver) {
@@ -569,14 +567,6 @@ class GlyphEditor {
                 e.stopPropagation();
             }
         }, false);
-        this.canvas.addEventListener('mouseup', (e) => {
-            this.mouseDown = false;
-            const { ex, ey } = this.convertMouseEvent(e);
-            this.setPixel(ex, ey, this.currentColor);
-            this.setCheckPoint();
-            e.preventDefault();
-            e.stopPropagation();
-        }, false);
 
         this.canvas.addEventListener('touchstart', (e) => {
             const { ex, ey } = this.convertTouchEvent(e);
@@ -597,6 +587,12 @@ class GlyphEditor {
             e.preventDefault();
         }, false);
 
+    }
+    mouseUp() {
+        if (this.mouseDown) {
+            this.setCheckPoint();
+        }
+        this.mouseDown = false;
     }
     convertMouseEvent(e) {
         const tr = e.target.getBoundingClientRect();
@@ -942,11 +938,12 @@ class FontDriver {
         const glyph = this.getGlyph(code)
         glyph.draw(ctx, x, y, this.fontWidth, this.fontHeight, color)
     }
-    drawText(str, canvas, x = 0, y = 0, w = null, h = null, color = 0x000000) {
-        let cursorX = x, cursorY = y
-        const maxWidth = w || canvas.width
-        const maxHeight = h || canvas.height
+    drawText(str, canvas, extra_height = 0, color = 0x000000) {
+        let cursorX = 0, cursorY = 0;
+        const maxWidth = canvas.width
+        const maxHeight = canvas.height
         const { fontWidth, fontHeight } = this
+        const lineHeight = fontHeight + extra_height;
         const ctx = canvas.getContext('2d');
 
         ctx.clearRect(0, 0, maxWidth, maxHeight);
@@ -955,12 +952,12 @@ class FontDriver {
             switch (char) {
                 case 0x0A: // LF
                     cursorX = 0;
-                    cursorY += fontHeight;
+                    cursorY += lineHeight;
                     break;
                 default:
                     if (cursorX + fontWidth > maxWidth) {
                         cursorX = 0;
-                        cursorY += fontHeight;
+                        cursorY += lineHeight;
                     }
                     this.drawChar(char, ctx, cursorX, cursorY, color)
                     cursorX += fontWidth;
@@ -1196,7 +1193,7 @@ class FontDriver {
             if (dataPtr < expectedMinCount) return false;
             this.beginImport(fontWidth, fontHeight, fontName);
             for (let i = 0; i < 256; i++) {
-                const array = rawData.slice(i * fontHeight, i * fontHeight + fontHeight - 1);
+                const array = rawData.slice(i * fontHeight, i * fontHeight + fontHeight);
                 this.data[i] = GlyphModel.deserialize(array, fontWidth, fontHeight, GlyphModel.SERIALIZE_ARRAY);
             }
             return true;
